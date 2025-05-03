@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DeviceController from '../../controllers/DeviceController';
+import DirectDeviceControl from './DirectDeviceControl';
 import './DeviceControl.css';
 
 const DeviceControl = () => {
@@ -66,45 +67,51 @@ const DeviceControl = () => {
   }
   
   return (
-    <div className="device-control">
+    <div className="device-control-container">
       <div className="page-header">
         <h1>Device Control</h1>
       </div>
       
+      {/* Direct device control panel */}
+      <DirectDeviceControl />
+      
       {error && <div className="error-message">{error}</div>}
       
-      <div className="device-grid">
-        {devices.length > 0 ? (
-          devices.map(device => (
-            <div key={device.id} className="device-card">
-              <div className="device-header">
-                <div className="device-icon">
-                  <i className={deviceTypeIcons[device.type] || 'fas fa-plug'}></i>
+      <div className="registered-devices">
+        <h2>Registered Devices</h2>
+        <div className="device-grid">
+          {devices.length > 0 ? (
+            devices.map(device => (
+              <div key={device.id} className="device-card">
+                <div className="device-header">
+                  <div className="device-icon">
+                    <i className={deviceTypeIcons[device.type] || 'fas fa-plug'}></i>
+                  </div>
+                  <div className="device-info">
+                    <h3>{device.name}</h3>
+                    <p>{device.location}</p>
+                  </div>
+                  <div className="device-status">
+                    <span className={device.status}>{device.status === 'active' ? 'ON' : 'OFF'}</span>
+                  </div>
                 </div>
-                <div className="device-info">
-                  <h3>{device.name}</h3>
-                  <p>{device.location}</p>
-                </div>
-                <div className="device-status">
-                  <span className={device.status}>{device.status === 'active' ? 'ON' : 'OFF'}</span>
+                
+                <div className="device-control-panel">
+                  <label className="toggle-switch">
+                    <input
+                      type="checkbox"
+                      checked={device.status === 'active'}
+                      onChange={() => handleToggleDevice(device.id)}
+                    />
+                    <span className="toggle-slider"></span>
+                  </label>
                 </div>
               </div>
-              
-              <div className="device-control-panel">
-                <label className="toggle-switch">
-                  <input
-                    type="checkbox"
-                    checked={device.status === 'active'}
-                    onChange={() => handleToggleDevice(device.id)}
-                  />
-                  <span className="toggle-slider"></span>
-                </label>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="no-devices">No devices found.</div>
-        )}
+            ))
+          ) : (
+            <div className="no-devices">No devices found.</div>
+          )}
+        </div>
       </div>
     </div>
   );

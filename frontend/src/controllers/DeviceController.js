@@ -119,6 +119,36 @@ class DeviceController {
       throw error;
     }
   }
+  
+  static async controlFan(action) {
+    try {
+      // Use the deviceService to control the fan
+      const result = await deviceService.controlFan(action);
+      return {
+        success: result.success,
+        message: result.message,
+        data: result.data
+      };
+    } catch (error) {
+      console.error(`Error controlling fan (${action}):`, error);
+      throw error;
+    }
+  }
+  
+  static async controlLight(action) {
+    try {
+      // Use the deviceService to control the light
+      const result = await deviceService.controlLight(action);
+      return {
+        success: result.success,
+        message: result.message,
+        data: result.data
+      };
+    } catch (error) {
+      console.error(`Error controlling light (${action}):`, error);
+      throw error;
+    }
+  }
 }
 
 export default DeviceController;

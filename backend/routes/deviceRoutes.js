@@ -12,6 +12,10 @@ router.get('/stats', deviceController.getDeviceStats);
 // Toggle devices by type
 router.post('/toggle-by-type', deviceController.toggleDevicesByType);
 
+// Direct fan and light control routes
+router.post('/fan/:action', deviceController.controlFan);
+router.post('/light/:action', deviceController.controlLight);
+
 // Device CRUD routes
 router.route('/')
   .get(deviceController.getAllDevices)

@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "init-sqlite": "node ./src/scripts/initSqlite.js"
   },
   "author": "LeHaiNguyen",
   "license": "ISC",
@@ -19,6 +20,8 @@
     "mqtt": "^5.11.0",
     "node-fetch": "^3.3.2",
     "pg": "^8.13.3",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7",
     "socket.io": "^4.8.1"
   }
 }

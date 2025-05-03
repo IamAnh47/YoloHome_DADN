@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import SensorController from '../../controllers/SensorController';
 import DeviceController from '../../controllers/DeviceController';
+import SensorChart from './SensorChart';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -149,6 +150,23 @@ const Dashboard = () => {
           <div className="card-footer">
             <a href="/alerts" className="view-all">View All Alerts</a>
           </div>
+        </div>
+      </div>
+      
+      {/* Sensor Charts Section */}
+      <div className="sensor-charts-section">
+        <h2>Sensor History</h2>
+        <div className="charts-container">
+          <SensorChart 
+            sensorType="temperature" 
+            title="Temperature History" 
+            unit="°C" 
+          />
+          <SensorChart 
+            sensorType="humidity" 
+            title="Humidity History" 
+            unit="%" 
+          />
         </div>
       </div>
     </div>

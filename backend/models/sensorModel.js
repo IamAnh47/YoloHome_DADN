@@ -132,8 +132,9 @@ class SensorModel {
   
   static async getLatestSensorData(sensorId) {
     try {
+      // Modified query for SQLite compatibility (removed PostgreSQL-specific type casting)
       const query = `
-        SELECT sd.data_id, sd.sensor_id, sd.svalue::float as svalue, sd.recorded_time
+        SELECT sd.data_id, sd.sensor_id, sd.svalue, sd.recorded_time
         FROM sensor_data sd
         WHERE sd.sensor_id = $1
         ORDER BY sd.recorded_time DESC
@@ -146,10 +147,10 @@ class SensorModel {
         return null;
       }
       
-      // Đảm bảo svalue luôn là số
+      // Ensure svalue is always a number
       const data = result.rows[0];
       if (data && data.svalue !== null && data.svalue !== undefined) {
-        // Ép kiểu về số nếu chưa phải
+        // Force type conversion to number if it's not already
         data.svalue = parseFloat(data.svalue);
       }
       

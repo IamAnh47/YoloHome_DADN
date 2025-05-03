@@ -49,6 +49,38 @@ const deviceService = {
       console.error(`Error toggling devices of type ${type}:`, error);
       throw error;
     }
+  },
+  
+  // Direct fan control
+  async controlFan(action) {
+    try {
+      // Validate action
+      if (action !== 'on' && action !== 'off') {
+        throw new Error('Invalid action. Use "on" or "off"');
+      }
+      
+      const response = await apiService.post(`/devices/fan/${action}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error controlling fan (action: ${action}):`, error);
+      throw error;
+    }
+  },
+  
+  // Direct light control
+  async controlLight(action) {
+    try {
+      // Validate action
+      if (action !== 'on' && action !== 'off') {
+        throw new Error('Invalid action. Use "on" or "off"');
+      }
+      
+      const response = await apiService.post(`/devices/light/${action}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error controlling light (action: ${action}):`, error);
+      throw error;
+    }
   }
 };
 

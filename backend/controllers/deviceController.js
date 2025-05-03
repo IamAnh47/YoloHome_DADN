@@ -1,5 +1,7 @@
 const DeviceModel = require('../models/deviceModel');
 const mqttService = require('../services/mqttService');
+const adafruitService = require('../services/adafruitService');
+
 // @desc    Get all devices
 // @route   GET /api/devices
 // @access  Private
@@ -265,3 +267,89 @@ exports.updateDevice = async (req, res, next) => {
       next(error);
     }
   };
+
+// New methods for direct fan and light control using Adafruit IO
+
+// @desc    Control fan
+// @route   POST /api/devices/fan/:action
+// @access  Private
+exports.controlFan = async (req, res, next) => {
+  try {
+    const { action } = req.params;
+    
+    // Validate action
+    if (action !== 'on' && action !== 'off') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid action. Use "on" or "off"'
+      });
+    }
+    
+    // Use the Adafruit Service to control the fan
+    let result;
+    if (action === 'on') {
+      result = await adafruitService.turnOnFan();
+    } else {
+      result = await adafruitService.turnOffFan();
+    }
+    
+    // Check if we have a result
+    if (!result) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to control fan. Check Adafruit IO connection.'
+      });
+    }
+    
+    // Return success response
+    res.status(200).json({
+      success: true,
+      message: `Fan turned ${action} successfully`,
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Control light
+// @route   POST /api/devices/light/:action
+// @access  Private
+exports.controlLight = async (req, res, next) => {
+  try {
+    const { action } = req.params;
+    
+    // Validate action
+    if (action !== 'on' && action !== 'off') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid action. Use "on" or "off"'
+      });
+    }
+    
+    // Use the Adafruit Service to control the light
+    let result;
+    if (action === 'on') {
+      result = await adafruitService.turnOnLight();
+    } else {
+      result = await adafruitService.turnOffLight();
+    }
+    
+    // Check if we have a result
+    if (!result) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to control light. Check Adafruit IO connection.'
+      });
+    }
+    
+    // Return success response
+    res.status(200).json({
+      success: true,
+      message: `Light turned ${action} successfully`,
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};

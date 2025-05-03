@@ -1,20 +1,43 @@
 const pool = require('../clients/db');
+const useSqlite = process.env.USE_SQLITE === 'true';
 
 const createSensorDataTable = async () => {
-  const query = `
-    CREATE TABLE IF NOT EXISTS sensor_data (
-      data_id SERIAL PRIMARY KEY,
-      sensor_id INT NOT NULL,
-      svalue FLOAT NOT NULL,
-      recorded_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (sensor_id) REFERENCES sensor(sensor_id) ON DELETE CASCADE
-    );
-  `;
-  await pool.query(query);
+  try {
+    let query;
+    
+    if (useSqlite) {
+      // SQLite version
+      query = `
+        CREATE TABLE IF NOT EXISTS sensor_data (
+          data_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          sensor_id INTEGER NOT NULL,
+          svalue REAL NOT NULL,
+          recorded_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (sensor_id) REFERENCES sensor(sensor_id) ON DELETE CASCADE
+        );
+      `;
+    } else {
+      // PostgreSQL version
+      query = `
+        CREATE TABLE IF NOT EXISTS sensor_data (
+          data_id SERIAL PRIMARY KEY,
+          sensor_id INT NOT NULL,
+          svalue FLOAT NOT NULL,
+          recorded_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (sensor_id) REFERENCES sensor(sensor_id) ON DELETE CASCADE
+        );
+      `;
+    }
+    
+    await pool.query(query);
+    console.log('Sensor data table initialized successfully');
+  } catch (err) {
+    console.error('Error creating sensor_data table:', err.message);
+  }
 };
+
+// Initialize the sensor_data table
 createSensorDataTable();
-
-
 
 const getAllSensorData = async () => {
   try {
@@ -26,7 +49,6 @@ const getAllSensorData = async () => {
     throw new Error(err);
   }
 };
-
 
 const getSensorDataById = async (id) => {
   try {
@@ -40,16 +62,30 @@ const getSensorDataById = async (id) => {
   }
 };
 
-
 const getSensorDataWithinRange = async (range) => {
   try {
-    const query = `
-      SELECT *
-      FROM sensor_data
-      WHERE recorded_time BETWEEN NOW() - INTERVAL '${range.timeEnd} hours'
-      AND NOW() - INTERVAL '${range.timeStart} hours'
-      ORDER BY recorded_time DESC;
-    `;
+    let query;
+    
+    if (useSqlite) {
+      // SQLite version using datetime function
+      query = `
+        SELECT *
+        FROM sensor_data
+        WHERE recorded_time BETWEEN datetime('now', '-${range.timeEnd} hours')
+        AND datetime('now', '-${range.timeStart} hours')
+        ORDER BY recorded_time DESC;
+      `;
+    } else {
+      // PostgreSQL version using INTERVAL syntax
+      query = `
+        SELECT *
+        FROM sensor_data
+        WHERE recorded_time BETWEEN NOW() - INTERVAL '${range.timeEnd} hours'
+        AND NOW() - INTERVAL '${range.timeStart} hours'
+        ORDER BY recorded_time DESC;
+      `;
+    }
+    
     const result = await pool.query(query);
     return result.rows;
   } catch (err) {
@@ -83,13 +119,15 @@ const deleteSensorData = async (id) => {
     throw new Error(err);
   }
 };
+
 const getSensorByType = async (sensorType) => {
   // Mapping feed names to sensor types
   const typeMapping = {
     'temperature': 'Temperature',
     'humidity': 'Humidity',
     'light': 'Light',
-    // Thêm các mapping khác nếu cần
+    'fan': 'Fan',
+    // Add fan and light control mappings
   };
 
   const mappedType = typeMapping[sensorType.toLowerCase()] || sensorType;
@@ -103,6 +141,7 @@ const getSensorByType = async (sensorType) => {
     throw new Error(err);
   }
 };
+
 module.exports = {
   getAllSensorData,
   getSensorDataById,
