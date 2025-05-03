@@ -185,13 +185,21 @@ INSERT INTO control (user_id, device_id) VALUES
 INSERT INTO equipped_with (device_id, sensor_id) VALUES
 (1, 1), (2, 1), (3, 1), (4, 1), (5, 1);
 
+-- Add data to ControlLogs table
+INSERT INTO control_logs (user_id, device_id, cl_action, description) VALUES
+(1, 1, 'Turn On', 'Turned on smart light'),
+(1, 2, 'Adjust Temperature', 'Set thermostat to 22°C'),
+(1, 3, 'Enable Security', 'Activated security camera'),
+(1, 4, 'Start Purifier', 'Turned on air purifier'),
+(1, 5, 'Lock Door', 'Locked the main entrance smart lock');
+
 -- Add data to Device_logs table
 INSERT INTO device_logs (log_id, device_id) VALUES
 (1, 1), (2, 2), (3, 3), (4, 4), (5, 5);
 
--- Add data to Sensor_logs table
+-- Add data to Sensor_logs table with unique log_id values
 INSERT INTO sensor_logs (log_id, sensor_id) VALUES
-(1, 1), (2, 2), (1, 3), (1, 4), (1, 5);
+(1, 1), (2, 2), (3, 3), (4, 4), (5, 5);
 
 -- Add data to SensorData table
 INSERT INTO sensor_data (sensor_id, svalue) VALUES
@@ -199,12 +207,4 @@ INSERT INTO sensor_data (sensor_id, svalue) VALUES
 (2, 60.2),
 (3, 1.0),
 (4, 150.3),
-(5, 500.0);
-
--- Add data to ControlLogs table
-INSERT INTO control_logs (user_id, device_id, cl_action, description) VALUES
-(1, 1, 'Turn On', 'Turned on smart light'),
-(1, 2, 'Adjust Temperature', 'Set thermostat to 22°C'),
-(1, 3, 'Enable Security', 'Activated security camera'),
-(1, 4, 'Start Purifier', 'Turned on air purifier'),
-(1, 5, 'Lock Door', 'Locked the main entrance smart lock'); 
+(5, 500.0); 
