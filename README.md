@@ -125,18 +125,18 @@ npm install
 5. Start the servers:
 ```bash
 # Backend
-cd backend
-npm run dev
+cd backend && npm start
 
 # Frontend
-cd ../frontend
-npm start
+cd frontend && npm start
 
 # ESP_MQTT_SERVER
-cd ../DADN_YoloHome_Web/ESP_MQTT_SERVER
-npm start
+cd DADN_YoloHome_Web/ESP_MQTT_SERVER && npm start
 ```
-
+## FAKE DATA
+```bash
+cd DADN_YoloHome_Web/ESP_MQTT_SERVER/test && node fake_data.js
+```
 ## ESP32 Client Setup
 
 1. Install PlatformIO or Arduino IDE
