@@ -1,5 +1,6 @@
 const SensorModel = require('../models/sensorModel');
 const predictionService = require('../services/predictionService');
+const alertService = require('../services/alertService');
 
 // @desc    Get all sensors
 // @route   GET /api/sensors
@@ -188,8 +189,10 @@ exports.addSensorData = async (req, res, next) => {
     // Add sensor data
     const data = await SensorModel.insertSensorData(req.params.id, value, timestamp);
     
-    // If this is temperature data, run the prediction
+    // Get sensor information
     const sensor = await SensorModel.getSensorById(req.params.id);
+    
+    // If this is temperature data, run the prediction
     if (sensor && sensor.sensor_type === 'temperature') {
       // Run temperature prediction
       const prediction = await predictionService.predictTemperature(value);
@@ -197,6 +200,31 @@ exports.addSensorData = async (req, res, next) => {
       // Include prediction in response
       data.prediction = prediction;
     }
+    
+    // Check for alert thresholds
+    // First, we need to get all latest readings
+    const temperatureSensor = await SensorModel.getSensorByType('temperature');
+    const humiditySensor = await SensorModel.getSensorByType('humidity');
+    const motionSensor = await SensorModel.getSensorByType('motion');
+    
+    // Get latest data for each sensor
+    const temperatureData = temperatureSensor ? 
+      await SensorModel.getLatestSensorData(temperatureSensor.sensor_id) : null;
+    const humidityData = humiditySensor ? 
+      await SensorModel.getLatestSensorData(humiditySensor.sensor_id) : null;
+    const motionData = motionSensor ? 
+      await SensorModel.getLatestSensorData(motionSensor.sensor_id) : null;
+    
+    // Prepare sensor data for alert checking
+    const sensorData = {
+      temperature: temperatureData ? parseFloat(temperatureData.svalue) : 0.0,
+      humidity: humidityData ? parseFloat(humidityData.svalue) : 0.0,
+      motion: motionData ? motionData.svalue > 0 : false,
+      timestamp: new Date().toISOString()
+    };
+    
+    // Check alert thresholds
+    await alertService.checkThresholds(sensorData);
     
     res.status(201).json({
       success: true,
@@ -212,59 +240,36 @@ exports.addSensorData = async (req, res, next) => {
 // @access  Private
 exports.getAllLatestReadings = async (req, res, next) => {
   try {
-    console.log('Getting all latest sensor readings');
+    // Get latest reading for each sensor type
+    const temperatureSensor = await SensorModel.getSensorByType('temperature');
+    const humiditySensor = await SensorModel.getSensorByType('humidity');
+    const motionSensor = await SensorModel.getSensorByType('motion');
     
-    // Get all sensors
-    const sensors = await SensorModel.getAllSensors();
-    console.log('Found sensors:', sensors.length);
+    // Get latest data for each sensor
+    const temperatureData = temperatureSensor ? 
+      await SensorModel.getLatestSensorData(temperatureSensor.sensor_id) : null;
+    const humidityData = humiditySensor ? 
+      await SensorModel.getLatestSensorData(humiditySensor.sensor_id) : null;
+    const motionData = motionSensor ? 
+      await SensorModel.getLatestSensorData(motionSensor.sensor_id) : null;
     
-    // Define default values with correct type (number, not string)
+    // Prepare response data
     const responseData = {
-      temperature: 0.0,  // Explicitly using float
-      humidity: 0.0,     // Explicitly using float
-      motion: false
+      temperature: temperatureData ? parseFloat(temperatureData.svalue) : 0.0,
+      humidity: humidityData ? parseFloat(humidityData.svalue) : 0.0,
+      motion: motionData ? motionData.svalue > 0 : false,
+      timestamp: new Date().toISOString()
     };
     
-    // Get latest reading for each sensor
-    for (const sensor of sensors) {
-      console.log(`Getting latest data for sensor ${sensor.sensor_id} (${sensor.sensor_type})`);
-      const data = await SensorModel.getLatestSensorData(sensor.sensor_id);
-      
-      if (data) {
-        console.log(`Found data for ${sensor.sensor_type}:`, data);
-        
-        // Chuyển đổi svalue thành số thực (float)
-        const value = parseFloat(data.svalue);
-        
-        // Kiểm tra kiểu dữ liệu đã chuyển đổi
-        console.log(`Converted ${sensor.sensor_type} value: ${value}, type: ${typeof value}`);
-        
-        if (!isNaN(value)) {  // Đảm bảo giá trị hợp lệ
-          if (sensor.sensor_type.toLowerCase() === 'temperature') {
-            responseData.temperature = value;  // Lưu dưới dạng số (không phải chuỗi)
-          } else if (sensor.sensor_type.toLowerCase() === 'humidity') {
-            responseData.humidity = value;     // Lưu dưới dạng số (không phải chuỗi)
-          } else if (sensor.sensor_type.toLowerCase() === 'motion') {
-            responseData.motion = value > 0;
-          }
-        }
-      } else {
-        console.log(`No data found for sensor ${sensor.sensor_id}`);
-      }
-    }
-    
-    console.log('Final response data (with types):', {
-      temperature: `${responseData.temperature} (${typeof responseData.temperature})`,
-      humidity: `${responseData.humidity} (${typeof responseData.humidity})`,
-      motion: `${responseData.motion} (${typeof responseData.motion})`
-    });
+    // Check alert thresholds
+    await alertService.checkThresholds(responseData);
     
     res.status(200).json({
       success: true,
       data: responseData
     });
   } catch (error) {
-    console.error('Error getting sensor readings:', error);
+    console.error('Error getting all latest readings:', error);
     next(error);
   }
 };

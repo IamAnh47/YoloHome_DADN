@@ -162,21 +162,21 @@ class AlertConfigModel {
       
       console.log(`Initializing default configs for user ${userId}`);
       
-      // Create default temperature config
+      // Create default temperature config with new thresholds
       await this.createAlertConfig({
         user_id: userId,
         sensor_type: 'temperature',
-        min_value: 18.0,
-        max_value: 30.0,
+        min_value: 18.0, // Cảnh báo khi nhiệt độ < 18°C
+        max_value: 30.0, // Cảnh báo khi nhiệt độ > 30°C
         is_active: true
       });
       
-      // Create default humidity config
+      // Create default humidity config with new thresholds
       await this.createAlertConfig({
         user_id: userId,
         sensor_type: 'humidity',
-        min_value: 30.0,
-        max_value: 70.0,
+        min_value: 40.0, // Cảnh báo khi độ ẩm < 40%
+        max_value: 70.0, // Cảnh báo khi độ ẩm > 70%
         is_active: true
       });
       
