@@ -154,69 +154,51 @@ VALUES (
   'admin@example.com'
 );
 
--- Insert default alert configurations for admin user
-INSERT INTO alert_config (user_id, sensor_type, min_value, max_value, is_active) 
-VALUES
+-- Thêm các thiết bị chính (quạt và đèn)
+INSERT INTO device (device_id, device_name, device_type, dlocation, status) VALUES
+(1, 'Smart Light', 'light', 'Living Room', 'active'),
+(2, 'Smart Fan', 'fan', 'Bedroom', 'active');
+
+-- Thêm các sensor đo lường (nhiệt độ, độ ẩm, chuyển động)
+INSERT INTO sensor (sensor_id, sensor_type, model, unit, description) VALUES
+(1, 'temperature', 'DHT11', 'Celsius', 'Temperature sensor'),
+(2, 'humidity', 'DHT11', 'Percentage', 'Humidity sensor'),
+(3, 'motion', 'PIR', 'Boolean', 'Motion detection sensor');
+
+-- Thêm cấu hình cảnh báo cho admin
+INSERT INTO alert_config (user_id, sensor_type, min_value, max_value, is_active) VALUES
 (1, 'temperature', 18.0, 30.0, true),
 (1, 'humidity', 30.0, 70.0, true);
 
--- Thêm dữ liệu vào bảng Devices
-INSERT INTO device (device_name, device_type, dlocation) VALUES
-('Smart Light', 'Lighting', 'Living Room'),
-('Thermostat', 'Temperature Control', 'Bedroom'),
-('Camera', 'Security', 'Front Door'),
-('Air Purifier', 'Air Quality', 'Office'),
-('Smart Lock', 'Security', 'Main Entrance');
-
--- Thêm dữ liệu vào bảng Sensors
-INSERT INTO sensor (sensor_type, model, unit, description) VALUES
-('Temperature', 'TMP36', 'Celsius', 'Temperature sensor for room monitoring'),
-('Humidity', 'DHT22', 'Percentage', 'Humidity sensor for environment control'),
-('Motion', 'PIR Sensor', 'Boolean', 'Detects movement'),
-('Air Quality', 'MQ135', 'PPM', 'Measures air quality index'),
-('Light', 'LDR', 'Lux', 'Measures ambient light intensity');
-
--- Thêm dữ liệu vào bảng Configurations
-INSERT INTO configuration (config_id, sensor_id, cparameter, cvalue) VALUES
-(1, 1, 'Threshold', '30'),
-(2, 2, 'MinHumidity', '40'),
-(3, 3, 'Sensitivity', 'High'),
-(4, 4, 'AQI Limit', '200'),
-(5, 5, 'Light Level', '300');
-
--- Thêm dữ liệu vào bảng Alerts
-INSERT INTO alert (device_id, sensor_id, alert_type, amessage) VALUES
-(1, 1, 'Overheat', 'Temperature exceeded threshold!'),
-(2, 2, 'Low Humidity', 'Humidity dropped below minimum!');
-
--- Thêm dữ liệu vào bảng Control
-INSERT INTO control (user_id, device_id) VALUES
-(1, 1), (1, 2), (1, 3), (1, 4), (1, 5);
-
--- Thêm dữ liệu vào bảng Equipped_with
+-- Kết nối thiết bị với sensor
 INSERT INTO equipped_with (device_id, sensor_id) VALUES
-(1, 1), (2, 1), (3, 1), (4, 1), (5, 1);
+(1, 3), -- Đèn kết nối với cảm biến chuyển động
+(2, 1), -- Quạt kết nối với cảm biến nhiệt độ
+(2, 2); -- Quạt kết nối với cảm biến độ ẩm
 
--- Thêm dữ liệu vào bảng Device_logs
-INSERT INTO device_logs (log_id, device_id) VALUES
-(1, 1), (2, 2), (3, 3), (4, 4), (5, 5);
+-- Cấp quyền điều khiển cho admin
+INSERT INTO control (user_id, device_id) VALUES
+(1, 1), (1, 2);
 
--- Thêm dữ liệu vào bảng Sensor_logs
-INSERT INTO sensor_logs (log_id, sensor_id) VALUES
-(1, 1), (2, 2), (1, 3), (1, 4), (1, 5);
+-- Thêm dữ liệu mẫu cho sensor_data
+INSERT INTO sensor_data (sensor_id, svalue, recorded_time) VALUES
+-- Dữ liệu nhiệt độ
+(1, 25.5, NOW() - INTERVAL '1 hour'),
+(1, 26.2, NOW() - INTERVAL '45 minutes'),
+(1, 26.8, NOW() - INTERVAL '30 minutes'),
+(1, 27.1, NOW() - INTERVAL '15 minutes'),
+(1, 27.5, NOW()),
 
--- Thêm dữ liệu vào bảng SensorData
-INSERT INTO sensor_data (sensor_id, svalue) VALUES
-(1, 25.5),
-(2, 60.2),
-(3, 1.0),
-(4, 150.3),
-(5, 500.0);
+-- Dữ liệu độ ẩm
+(2, 60.5, NOW() - INTERVAL '1 hour'),
+(2, 61.2, NOW() - INTERVAL '45 minutes'),
+(2, 62.8, NOW() - INTERVAL '30 minutes'),
+(2, 63.1, NOW() - INTERVAL '15 minutes'),
+(2, 63.5, NOW()),
 
--- Thêm dữ liệu vào bảng ControlLogs
-INSERT INTO control_logs (user_id, device_id, cl_action, description) VALUES
-(1, 1, 'Turn On', 'Turned on smart light'),
-(1, 2, 'Adjust Temperature', 'Set thermostat to 22°C'),
-(1, 3, 'Enable Security', 'Activated security camera'),
-(1, 4, 'Start Purifier', 'Turned on air purifier'),
-(1, 5, 'Lock Door', 'Locked the main entrance smart lock');
+-- Dữ liệu chuyển động (1 = có chuyển động, 0 = không có)
+(3, 0, NOW() - INTERVAL '1 hour'),
+(3, 1, NOW() - INTERVAL '45 minutes'),
+(3, 0, NOW() - INTERVAL '30 minutes'),
+(3, 1, NOW() - INTERVAL '15 minutes'),
+(3, 0, NOW());

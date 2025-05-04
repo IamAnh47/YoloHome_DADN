@@ -6,22 +6,19 @@ const authMiddleware = require('../middleware/authMiddleware');
 // Protect all routes
 router.use(authMiddleware.protect);
 
-// Get all latest readings
-router.get('/readings', sensorController.getAllLatestReadings);
+// Get latest sensor readings
+router.get('/readings', sensorController.getLatestReadings);
 
-// Sensor CRUD routes
-router.route('/')
-  .get(sensorController.getAllSensors)
-  .post(sensorController.createSensor);
+// Get sensor history
+router.get('/history/:type', sensorController.getSensorHistoryByType);
 
-router.route('/:id')
-  .get(sensorController.getSensor)
-  .put(sensorController.updateSensor)
-  .delete(sensorController.deleteSensor);
+// Get all sensors
+router.get('/', sensorController.getAllSensors);
 
-// Sensor data routes
-router.get('/:id/data', sensorController.getSensorData);
-router.get('/:id/latest', sensorController.getLatestSensorData);
-router.post('/:id/data', sensorController.addSensorData);
+// Get single sensor
+router.get('/:id', sensorController.getSensor);
+
+// Create new sensor data
+router.post('/data', sensorController.createSensorData);
 
 module.exports = router;

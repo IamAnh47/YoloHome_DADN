@@ -132,12 +132,11 @@ class SensorModel {
   
   static async getLatestSensorData(sensorId) {
     try {
-      // Modified query for SQLite compatibility (removed PostgreSQL-specific type casting)
       const query = `
-        SELECT sd.data_id, sd.sensor_id, sd.svalue, sd.recorded_time
-        FROM sensor_data sd
-        WHERE sd.sensor_id = $1
-        ORDER BY sd.recorded_time DESC
+        SELECT data_id, sensor_id, svalue, recorded_time
+        FROM sensor_data
+        WHERE sensor_id = $1
+        ORDER BY recorded_time DESC
         LIMIT 1
       `;
       
@@ -147,16 +146,9 @@ class SensorModel {
         return null;
       }
       
-      // Ensure svalue is always a number
-      const data = result.rows[0];
-      if (data && data.svalue !== null && data.svalue !== undefined) {
-        // Force type conversion to number if it's not already
-        data.svalue = parseFloat(data.svalue);
-      }
-      
-      return data;
+      return result.rows[0];
     } catch (error) {
-      throw new Error(`Error getting latest sensor data: ${error.message}`);
+      throw new Error(`Error getting latest data for sensor: ${error.message}`);
     }
   }
   
@@ -185,6 +177,44 @@ class SensorModel {
       return result.rows[0];
     } catch (error) {
       throw new Error(`Error inserting sensor data: ${error.message}`);
+    }
+  }
+  
+  static async getSensorByType(sensorType) {
+    try {
+      const query = `
+        SELECT sensor_id, sensor_type, model, unit, description
+        FROM sensor
+        WHERE sensor_type = $1
+        LIMIT 1
+      `;
+      
+      const result = await db.query(query, [sensorType]);
+      
+      if (result.rows.length === 0) {
+        return null;
+      }
+      
+      return result.rows[0];
+    } catch (error) {
+      throw new Error(`Error getting sensor by type: ${error.message}`);
+    }
+  }
+  
+  static async getSensorHistory(sensorId, limit = 24) {
+    try {
+      const query = `
+        SELECT data_id, sensor_id, svalue, recorded_time
+        FROM sensor_data
+        WHERE sensor_id = $1
+        ORDER BY recorded_time DESC
+        LIMIT $2
+      `;
+      
+      const result = await db.query(query, [sensorId, limit]);
+      return result.rows;
+    } catch (error) {
+      throw new Error(`Error getting sensor history: ${error.message}`);
     }
   }
 }

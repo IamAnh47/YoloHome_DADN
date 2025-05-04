@@ -9,9 +9,6 @@ class SensorController {
       if (response.data && response.data.data) {
         const data = response.data.data;
         console.log('API response data:', data);
-        console.log('Data types - temperature:', typeof data.temperature, 
-                    'humidity:', typeof data.humidity,
-                    'motion:', typeof data.motion);
         
         return {
           // Đảm bảo là số trước khi định dạng
@@ -25,14 +22,30 @@ class SensorController {
       throw new Error('Invalid data format received from API');
     } catch (error) {
       console.error('Error fetching sensor readings:', error);
-      throw error;
+      // Fallback to mock data
+      return {
+        temperature: '25.0',
+        humidity: '60.0',
+        motion: false
+      };
     }
   }
   
   static async getSensorHistory(sensorType, timeRange = 'day') {
     try {
-      // In a real application, we would fetch historical data from the API
-      // For now, let's generate mock data
+      // Lấy dữ liệu từ API
+      const response = await apiService.get(`/sensors/history/${sensorType}?limit=24`);
+      
+      if (response.data && response.data.data) {
+        return response.data.data;
+      }
+      
+      console.warn('API response structure:', JSON.stringify(response.data));
+      throw new Error('Invalid data format received from API');
+    } catch (error) {
+      console.error(`Error fetching ${sensorType} history:`, error);
+      
+      // Fallback to mock data
       const now = new Date();
       const data = [];
       
@@ -60,9 +73,6 @@ class SensorController {
       }
       
       return data;
-    } catch (error) {
-      console.error(`Error fetching ${sensorType} history:`, error);
-      throw error;
     }
   }
   
@@ -82,56 +92,38 @@ class SensorController {
       }
       
       // Fallback to mock data if API fails or returns unexpected format
-      return [
-        {
-          id: 1,
-          type: 'temperature',
-          message: 'Temperature exceeded 30°C',
-          timestamp: new Date(Date.now() - 30 * 60000).toISOString(),
-          status: 'active'
-        },
-        {
-          id: 2,
-          type: 'motion',
-          message: 'Motion detected in living room',
-          timestamp: new Date(Date.now() - 45 * 60000).toISOString(),
-          status: 'active'
-        },
-        {
-          id: 3,
-          type: 'humidity',
-          message: 'Humidity level below 30%',
-          timestamp: new Date(Date.now() - 120 * 60000).toISOString(),
-          status: 'resolved'
-        }
-      ];
+      return this.getMockAlerts();
     } catch (error) {
       console.error('Error fetching alerts:', error);
       // Fallback to mock data
-      return [
-        {
-          id: 1,
-          type: 'temperature',
-          message: 'Temperature exceeded 30°C',
-          timestamp: new Date(Date.now() - 30 * 60000).toISOString(),
-          status: 'active'
-        },
-        {
-          id: 2,
-          type: 'motion',
-          message: 'Motion detected in living room',
-          timestamp: new Date(Date.now() - 45 * 60000).toISOString(),
-          status: 'active'
-        },
-        {
-          id: 3,
-          type: 'humidity',
-          message: 'Humidity level below 30%',
-          timestamp: new Date(Date.now() - 120 * 60000).toISOString(),
-          status: 'resolved'
-        }
-      ];
+      return this.getMockAlerts();
     }
+  }
+  
+  static getMockAlerts() {
+    return [
+      {
+        id: 1,
+        type: 'temperature',
+        message: 'Temperature exceeded 30°C',
+        timestamp: new Date(Date.now() - 30 * 60000).toISOString(),
+        status: 'active'
+      },
+      {
+        id: 2,
+        type: 'motion',
+        message: 'Motion detected in living room',
+        timestamp: new Date(Date.now() - 45 * 60000).toISOString(),
+        status: 'active'
+      },
+      {
+        id: 3,
+        type: 'humidity',
+        message: 'Humidity level below 30%',
+        timestamp: new Date(Date.now() - 120 * 60000).toISOString(),
+        status: 'resolved'
+      }
+    ];
   }
 }
 

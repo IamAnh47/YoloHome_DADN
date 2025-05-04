@@ -145,6 +145,49 @@ class DeviceModel {
       throw new Error(`Error getting device statistics: ${error.message}`);
     }
   }
+  
+  static async findDeviceByType(deviceType) {
+    try {
+      const query = `
+        SELECT device_id, device_name, device_type, dlocation, status, created_time
+        FROM device
+        WHERE device_type = $1
+        LIMIT 1
+      `;
+      
+      const result = await db.query(query, [deviceType]);
+      
+      if (result.rows.length === 0) {
+        return null;
+      }
+      
+      return result.rows[0];
+    } catch (error) {
+      throw new Error(`Error finding device by type: ${error.message}`);
+    }
+  }
+  
+  static async createControlLog(logData) {
+    try {
+      const query = `
+        INSERT INTO control_logs (user_id, device_id, cl_action, description)
+        VALUES ($1, $2, $3, $4)
+        RETURNING log_id
+      `;
+      
+      const values = [
+        logData.user_id,
+        logData.device_id,
+        logData.action,
+        logData.description || null
+      ];
+      
+      const result = await db.query(query, values);
+      return result.rows[0];
+    } catch (error) {
+      throw new Error(`Error creating control log: ${error.message}`);
+    }
+  }
 }
 
 module.exports = DeviceModel;

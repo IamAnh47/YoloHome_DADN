@@ -353,3 +353,207 @@ exports.controlLight = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Turn on fan device
+// @route   POST /api/devices/fan/on
+// @access  Private
+exports.turnOnFan = async (req, res, next) => {
+  try {
+    // Tìm thiết bị quạt từ database
+    const fanDevice = await DeviceModel.findDeviceByType('fan');
+    
+    if (!fanDevice) {
+      return res.status(404).json({
+        success: false,
+        message: 'Fan device not found'
+      });
+    }
+    
+    // Cập nhật trạng thái thiết bị
+    const updatedDevice = await DeviceModel.updateDevice(fanDevice.device_id, { status: 'active' });
+    
+    // Gửi lệnh qua MQTT và Adafruit
+    const topic = `yolohome/devices/${fanDevice.device_id}/control`;
+    const message = JSON.stringify({
+      device_id: fanDevice.device_id,
+      action: 'ON',
+      status: 'active',
+      timestamp: new Date().toISOString(),
+      source: 'api'
+    });
+    
+    mqttService.publishMessage(topic, message);
+    
+    // Sử dụng AdafruitService để điều khiển thiết bị
+    await adafruitService.turnOnFan();
+    
+    // Lưu lại nhật ký điều khiển
+    await DeviceModel.createControlLog({
+      user_id: req.user.id,
+      device_id: fanDevice.device_id,
+      action: 'Turn On Fan',
+      description: 'Fan turned on via API'
+    });
+    
+    res.status(200).json({
+      success: true,
+      message: 'Fan turned on successfully',
+      data: updatedDevice
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Turn off fan device
+// @route   POST /api/devices/fan/off
+// @access  Private
+exports.turnOffFan = async (req, res, next) => {
+  try {
+    // Tìm thiết bị quạt từ database
+    const fanDevice = await DeviceModel.findDeviceByType('fan');
+    
+    if (!fanDevice) {
+      return res.status(404).json({
+        success: false,
+        message: 'Fan device not found'
+      });
+    }
+    
+    // Cập nhật trạng thái thiết bị
+    const updatedDevice = await DeviceModel.updateDevice(fanDevice.device_id, { status: 'inactive' });
+    
+    // Gửi lệnh qua MQTT và Adafruit
+    const topic = `yolohome/devices/${fanDevice.device_id}/control`;
+    const message = JSON.stringify({
+      device_id: fanDevice.device_id,
+      action: 'OFF',
+      status: 'inactive',
+      timestamp: new Date().toISOString(),
+      source: 'api'
+    });
+    
+    mqttService.publishMessage(topic, message);
+    
+    // Sử dụng AdafruitService để điều khiển thiết bị
+    await adafruitService.turnOffFan();
+    
+    // Lưu lại nhật ký điều khiển
+    await DeviceModel.createControlLog({
+      user_id: req.user.id,
+      device_id: fanDevice.device_id,
+      action: 'Turn Off Fan',
+      description: 'Fan turned off via API'
+    });
+    
+    res.status(200).json({
+      success: true,
+      message: 'Fan turned off successfully',
+      data: updatedDevice
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Turn on light device
+// @route   POST /api/devices/light/on
+// @access  Private
+exports.turnOnLight = async (req, res, next) => {
+  try {
+    // Tìm thiết bị đèn từ database
+    const lightDevice = await DeviceModel.findDeviceByType('light');
+    
+    if (!lightDevice) {
+      return res.status(404).json({
+        success: false,
+        message: 'Light device not found'
+      });
+    }
+    
+    // Cập nhật trạng thái thiết bị
+    const updatedDevice = await DeviceModel.updateDevice(lightDevice.device_id, { status: 'active' });
+    
+    // Gửi lệnh qua MQTT và Adafruit
+    const topic = `yolohome/devices/${lightDevice.device_id}/control`;
+    const message = JSON.stringify({
+      device_id: lightDevice.device_id,
+      action: 'ON',
+      status: 'active',
+      timestamp: new Date().toISOString(),
+      source: 'api'
+    });
+    
+    mqttService.publishMessage(topic, message);
+    
+    // Sử dụng AdafruitService để điều khiển thiết bị
+    await adafruitService.turnOnLight();
+    
+    // Lưu lại nhật ký điều khiển
+    await DeviceModel.createControlLog({
+      user_id: req.user.id,
+      device_id: lightDevice.device_id,
+      action: 'Turn On Light',
+      description: 'Light turned on via API'
+    });
+    
+    res.status(200).json({
+      success: true,
+      message: 'Light turned on successfully',
+      data: updatedDevice
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Turn off light device
+// @route   POST /api/devices/light/off
+// @access  Private
+exports.turnOffLight = async (req, res, next) => {
+  try {
+    // Tìm thiết bị đèn từ database
+    const lightDevice = await DeviceModel.findDeviceByType('light');
+    
+    if (!lightDevice) {
+      return res.status(404).json({
+        success: false,
+        message: 'Light device not found'
+      });
+    }
+    
+    // Cập nhật trạng thái thiết bị
+    const updatedDevice = await DeviceModel.updateDevice(lightDevice.device_id, { status: 'inactive' });
+    
+    // Gửi lệnh qua MQTT và Adafruit
+    const topic = `yolohome/devices/${lightDevice.device_id}/control`;
+    const message = JSON.stringify({
+      device_id: lightDevice.device_id,
+      action: 'OFF',
+      status: 'inactive',
+      timestamp: new Date().toISOString(),
+      source: 'api'
+    });
+    
+    mqttService.publishMessage(topic, message);
+    
+    // Sử dụng AdafruitService để điều khiển thiết bị
+    await adafruitService.turnOffLight();
+    
+    // Lưu lại nhật ký điều khiển
+    await DeviceModel.createControlLog({
+      user_id: req.user.id,
+      device_id: lightDevice.device_id,
+      action: 'Turn Off Light',
+      description: 'Light turned off via API'
+    });
+    
+    res.status(200).json({
+      success: true,
+      message: 'Light turned off successfully',
+      data: updatedDevice
+    });
+  } catch (error) {
+    next(error);
+  }
+};

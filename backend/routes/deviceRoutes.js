@@ -6,27 +6,29 @@ const authMiddleware = require('../middleware/authMiddleware');
 // Protect all routes
 router.use(authMiddleware.protect);
 
-// Device stats route
-router.get('/stats', deviceController.getDeviceStats);
+// Direct device control routes
+router.post('/fan/on', deviceController.turnOnFan);
+router.post('/fan/off', deviceController.turnOffFan);
+router.post('/light/on', deviceController.turnOnLight);
+router.post('/light/off', deviceController.turnOffLight);
 
 // Toggle devices by type
 router.post('/toggle-by-type', deviceController.toggleDevicesByType);
-
-// Direct fan and light control routes
-router.post('/fan/:action', deviceController.controlFan);
-router.post('/light/:action', deviceController.controlLight);
 
 // Device CRUD routes
 router.route('/')
   .get(deviceController.getAllDevices)
   .post(deviceController.createDevice);
 
+router.route('/stats')
+  .get(deviceController.getDeviceStats);
+
 router.route('/:id')
   .get(deviceController.getDevice)
   .put(deviceController.updateDevice)
   .delete(deviceController.deleteDevice);
 
-// Device control route
-router.post('/:id/control', deviceController.controlDevice);
+router.route('/:id/control')
+  .post(deviceController.controlDevice);
 
 module.exports = router;

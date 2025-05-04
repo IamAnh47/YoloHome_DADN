@@ -268,3 +268,92 @@ exports.getAllLatestReadings = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Get latest readings
+// @route   GET /api/sensors/readings/latest
+// @access  Private
+exports.getLatestReadings = async (req, res, next) => {
+  try {
+    // Lấy dữ liệu từ các cảm biến temperature, humidity, motion
+    const temperatureSensor = await SensorModel.getSensorByType('temperature');
+    const humiditySensor = await SensorModel.getSensorByType('humidity');
+    const motionSensor = await SensorModel.getSensorByType('motion');
+    
+    // Kiểm tra xem các cảm biến có tồn tại không
+    if (!temperatureSensor || !humiditySensor || !motionSensor) {
+      return res.status(404).json({
+        success: false,
+        message: 'Required sensors not found'
+      });
+    }
+    
+    // Lấy dữ liệu mới nhất từ mỗi cảm biến
+    const latestTemperature = await SensorModel.getLatestSensorData(temperatureSensor.sensor_id);
+    const latestHumidity = await SensorModel.getLatestSensorData(humiditySensor.sensor_id);
+    const latestMotion = await SensorModel.getLatestSensorData(motionSensor.sensor_id);
+    
+    // Cấu trúc dữ liệu để trả về
+    const sensorData = {
+      temperature: latestTemperature ? parseFloat(latestTemperature.svalue).toFixed(1) : '0.0',
+      humidity: latestHumidity ? parseFloat(latestHumidity.svalue).toFixed(1) : '0.0',
+      motion: latestMotion ? latestMotion.svalue > 0 : false,
+      timestamp: new Date().toISOString()
+    };
+    
+    res.status(200).json({
+      success: true,
+      data: sensorData
+    });
+  } catch (error) {
+    console.error('Error in getLatestReadings:', error);
+    next(error);
+  }
+};
+
+// @desc    Get sensor history by type
+// @route   GET /api/sensors/history/:type
+// @access  Private
+exports.getSensorHistoryByType = async (req, res, next) => {
+  try {
+    const { type } = req.params;
+    
+    // Validate sensor type
+    if (!type || !['temperature', 'humidity', 'motion'].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid sensor type'
+      });
+    }
+    
+    // Get sensor ID by type
+    const sensor = await SensorModel.getSensorByType(type);
+    
+    if (!sensor) {
+      return res.status(404).json({
+        success: false,
+        message: `${type} sensor not found`
+      });
+    }
+    
+    // Get the historical data (default last 24 entries)
+    const limit = req.query.limit ? parseInt(req.query.limit) : 24;
+    const historyData = await SensorModel.getSensorHistory(sensor.sensor_id, limit);
+    
+    // Format the data for UI
+    const formattedData = historyData.map(item => {
+      return {
+        timestamp: item.recorded_time,
+        value: type === 'motion' ? (item.svalue > 0) : parseFloat(item.svalue)
+      };
+    });
+    
+    res.status(200).json({
+      success: true,
+      count: formattedData.length,
+      data: formattedData
+    });
+  } catch (error) {
+    console.error(`Error getting ${req.params.type} history:`, error);
+    next(error);
+  }
+};
