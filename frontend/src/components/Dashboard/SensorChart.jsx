@@ -113,7 +113,6 @@ const SensorChart = ({ sensorType, title, unit }) => {
     for (let i = 1; i < points.length; i++) {
       // Calculate control points with improved curve tension
       const xDiff = points[i].x - points[i-1].x;
-      const yDiff = points[i].y - points[i-1].y;
       const tension = 0.2; // Lower value = smoother curve
       
       const ctrl1x = points[i-1].x + xDiff * tension;

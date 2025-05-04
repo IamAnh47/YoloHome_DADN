@@ -111,8 +111,6 @@ class SensorController {
    */
   static async getSensorHistory(sensorType, timeRange = 'day', forceFresh = false) {
     try {
-      const cacheKey = `${sensorType}_${timeRange}`;
-      
       if (!this.isDataFresh('history', sensorType) || forceFresh) {
         console.log(`Fetching ${sensorType} ${timeRange} history data from API`);
         
