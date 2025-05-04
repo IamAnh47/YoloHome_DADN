@@ -12,8 +12,9 @@ class AuthController {
         localStorage.setItem('userId', response.user.id);
         localStorage.setItem('token', response.token);
         
-        // Create user model instance with data
+        // Create user model instance and store in localStorage
         const user = new UserModel(response.user);
+        localStorage.setItem('userData', JSON.stringify(user));
         
         return {
           success: true,
@@ -42,6 +43,7 @@ class AuthController {
       // Clear local storage
       localStorage.removeItem('token');
       localStorage.removeItem('userId');
+      localStorage.removeItem('userData');
       
       return { success: true };
     } catch (error) {
@@ -59,6 +61,11 @@ class AuthController {
   
   static getCurrentUserId() {
     return localStorage.getItem('userId');
+  }
+  
+  static getCurrentUser() {
+    const userData = localStorage.getItem('userData');
+    return userData ? JSON.parse(userData) : null;
   }
 }
 

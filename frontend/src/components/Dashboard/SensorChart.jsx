@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import SensorController from '../../controllers/SensorController';
 import './SensorChart.css';
 
@@ -7,11 +7,7 @@ const SensorChart = ({ sensorType, title, unit }) => {
   const [timeRange, setTimeRange] = useState('day');
   const [isLoading, setIsLoading] = useState(true);
   
-  useEffect(() => {
-    loadChartData();
-  }, [sensorType, timeRange]);
-  
-  const loadChartData = async () => {
+  const loadChartData = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await SensorController.getSensorHistory(sensorType, timeRange);
@@ -21,7 +17,11 @@ const SensorChart = ({ sensorType, title, unit }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [sensorType, timeRange]);
+  
+  useEffect(() => {
+    loadChartData();
+  }, [sensorType, timeRange, loadChartData]);
   
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
