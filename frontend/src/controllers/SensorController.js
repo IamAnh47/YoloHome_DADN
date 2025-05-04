@@ -56,16 +56,24 @@ class SensorController {
   /**
    * Get latest sensor readings with automatic cache management
    * @param {boolean} [forceFresh=false] - Force fetching fresh data
+   * @param {string} [specificSensor=null] - Optional specific sensor type to refresh ('temperature', 'humidity', 'motion')
    * @returns {Promise<Object>} Latest sensor reading data
    */
-  static async getLatestReadings(forceFresh = false) {
+  static async getLatestReadings(forceFresh = false, specificSensor = null) {
     try {
       if (!this.isDataFresh('readings') || forceFresh) {
-        console.log('Fetching latest sensor readings from API');
+        console.log(`Fetching latest ${specificSensor || 'all'} sensor readings from API`);
         
         // Add cache buster to prevent caching
         const cacheBuster = `?_t=${Date.now()}`;
-        const response = await apiService.get('/sensors/readings' + cacheBuster);
+        let endpoint = '/sensors/readings';
+        
+        // If a specific sensor is requested, use a more targeted endpoint
+        if (specificSensor && ['temperature', 'humidity', 'motion'].includes(specificSensor)) {
+          endpoint = `/sensors/readings/${specificSensor}`;
+        }
+        
+        const response = await apiService.get(endpoint + cacheBuster);
         
         if (response.data && response.data.data) {
           const data = response.data.data;
@@ -75,7 +83,7 @@ class SensorController {
           this.updateTimestamp('readings');
           
           return {
-            // Đảm bảo là số trước khi định dạng
+            // Ensure values are numbers before formatting
             temperature: (typeof data.temperature === 'number' ? data.temperature : parseFloat(data.temperature || 0)).toFixed(1),
             humidity: (typeof data.humidity === 'number' ? data.humidity : parseFloat(data.humidity || 0)).toFixed(1),
             motion: Boolean(data.motion)

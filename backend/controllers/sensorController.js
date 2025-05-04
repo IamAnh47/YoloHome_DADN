@@ -408,3 +408,57 @@ exports.createSensorData = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Get latest reading for a specific sensor type
+// @route   GET /api/sensors/readings/:type
+// @access  Private
+exports.getLatestSensorByType = async (req, res, next) => {
+  try {
+    const { type } = req.params;
+    
+    // Validate sensor type
+    if (!type || !['temperature', 'humidity', 'motion'].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid sensor type'
+      });
+    }
+    
+    // Get sensor by type
+    const sensor = await SensorModel.getSensorByType(type);
+    
+    if (!sensor) {
+      return res.status(404).json({
+        success: false,
+        message: `${type} sensor not found`
+      });
+    }
+    
+    // Get latest data for the specific sensor
+    const latestData = await SensorModel.getLatestSensorData(sensor.sensor_id);
+    
+    // Prepare response data with only the requested sensor type
+    const responseData = {
+      temperature: type === 'temperature' ? 
+        (latestData ? parseFloat(latestData.svalue) : 0.0) : undefined,
+      humidity: type === 'humidity' ? 
+        (latestData ? parseFloat(latestData.svalue) : 0.0) : undefined,
+      motion: type === 'motion' ? 
+        (latestData ? latestData.svalue > 0 : false) : undefined,
+      timestamp: new Date().toISOString()
+    };
+    
+    // Remove undefined properties
+    Object.keys(responseData).forEach(key => 
+      responseData[key] === undefined && delete responseData[key]
+    );
+    
+    res.status(200).json({
+      success: true,
+      data: responseData
+    });
+  } catch (error) {
+    console.error(`Error getting latest ${req.params.type} data:`, error);
+    next(error);
+  }
+};

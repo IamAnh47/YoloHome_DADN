@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import SensorController from '../../controllers/SensorController';
 import SystemController from '../../controllers/SystemController';
 import SensorChart from '../Dashboard/SensorChart';
@@ -12,52 +12,54 @@ const SensorsPage = () => {
   });
   
   const [isLoading, setIsLoading] = useState(true);
-  const [refreshInterval, setRefreshInterval] = useState(30); // seconds
   const [lastUpdated, setLastUpdated] = useState('');
   
-  const loadSensorData = async () => {
+  // Use useCallback to prevent recreation of this function on each render
+  const loadSensorData = useCallback(async () => {
     try {
-      setIsLoading(true);
-      const systemStatus = await SystemController.getSystemStatus();
-      setSensorData(systemStatus.sensors);
-      setLastUpdated(new Date().toLocaleTimeString());
+      // Only show loading state on initial load, not during auto-refresh
+      const initialLoad = isLoading;
+      if (initialLoad) setIsLoading(true);
+      
+      // Get only the sensor data without refreshing everything
+      const data = await SensorController.getLatestReadings(true);
+      
+      if (data) {
+        setSensorData({
+          temperature: data.temperature,
+          humidity: data.humidity,
+          motion: data.motion
+        });
+        setLastUpdated(new Date().toLocaleTimeString());
+      }
     } catch (error) {
       console.error('Error loading sensor data:', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isLoading]);
   
   useEffect(() => {
     // Load sensor data when component mounts
     loadSensorData();
     
-    // Set up refresh interval
-    const interval = setInterval(loadSensorData, refreshInterval * 1000);
+    // Set up refresh interval (consistent 5 seconds for all components)
+    const interval = setInterval(loadSensorData, 5000);
     
     // Clean up interval on unmount
     return () => clearInterval(interval);
-  }, [refreshInterval]);
-  
-  const handleRefreshChange = (e) => {
-    const value = parseInt(e.target.value);
-    setRefreshInterval(value);
-  };
+  }, [loadSensorData]);
   
   return (
     <div className="sensors-page">
       <div className="sensors-header">
         <h1>Sensors Data</h1>
         <div className="refresh-controls">
-          <span>Auto-refresh every: </span>
-          <select value={refreshInterval} onChange={handleRefreshChange}>
-            <option value="10">10 seconds</option>
-            <option value="30">30 seconds</option>
-            <option value="60">1 minute</option>
-            <option value="300">5 minutes</option>
-          </select>
-          <button onClick={loadSensorData} disabled={isLoading}>
-            {isLoading ? 'Refreshing...' : 'Refresh Now'}
+          <button onClick={loadSensorData} disabled={isLoading} className="refresh-button">
+            {isLoading ? 
+              <><i className="fas fa-spinner fa-spin"></i> Refreshing...</> : 
+              <><i className="fas fa-sync-alt"></i> Refresh Now</>
+            }
           </button>
         </div>
       </div>

@@ -9,6 +9,9 @@ router.use(authMiddleware.protect);
 // Get latest sensor readings
 router.get('/readings', sensorController.getLatestReadings);
 
+// Get latest reading for a specific sensor type
+router.get('/readings/:type', sensorController.getLatestSensorByType);
+
 // Get sensor history
 router.get('/history/:type', sensorController.getSensorHistoryByType);
 
