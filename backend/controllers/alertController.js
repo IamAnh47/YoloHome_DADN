@@ -20,6 +20,26 @@ exports.getAllAlerts = async (req, res, next) => {
   }
 };
 
+// @desc    Get recent alerts
+// @route   GET /api/alerts/recent
+// @access  Private
+exports.getRecentAlerts = async (req, res, next) => {
+  try {
+    const limit = req.query.limit ? parseInt(req.query.limit) : 10;
+    
+    // Get the most recent alerts
+    const alerts = await AlertModel.getRecentAlerts(limit);
+    
+    res.status(200).json({
+      success: true,
+      count: alerts.length,
+      data: alerts
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Get single alert
 // @route   GET /api/alerts/:id
 // @access  Private

@@ -97,6 +97,22 @@ class AlertModel {
     }
   }
   
+  static async getRecentAlerts(limit = 10) {
+    try {
+      const query = `
+        SELECT a.alert_id, a.device_id, a.sensor_id, a.alert_type, a.amessage, a.alerted_time, a.status
+        FROM alert a
+        ORDER BY a.alerted_time DESC
+        LIMIT $1
+      `;
+      
+      const result = await db.query(query, [limit]);
+      return result.rows;
+    } catch (error) {
+      throw new Error(`Error getting recent alerts: ${error.message}`);
+    }
+  }
+  
   static async deleteAlert(id) {
     try {
       const query = 'DELETE FROM alert WHERE alert_id = $1 RETURNING alert_id';
