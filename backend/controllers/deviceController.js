@@ -557,3 +557,35 @@ exports.turnOffLight = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Get status of all devices (fan, light)
+// @route   GET /api/devices/status
+// @access  Private
+exports.getDeviceStatus = async (req, res, next) => {
+  try {
+    // Tìm thiết bị quạt và đèn
+    const fanDevice = await DeviceModel.findDeviceByType('fan');
+    const lightDevice = await DeviceModel.findDeviceByType('light');
+    
+    // Kết quả trả về
+    const result = {
+      fan: {
+        status: fanDevice ? fanDevice.status === 'active' : false,
+        device_id: fanDevice ? fanDevice.device_id : null
+      },
+      light: {
+        status: lightDevice ? lightDevice.status === 'active' : false,
+        device_id: lightDevice ? lightDevice.device_id : null
+      },
+      timestamp: new Date().toISOString()
+    };
+    
+    res.status(200).json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error('Error getting device status:', error);
+    next(error);
+  }
+};

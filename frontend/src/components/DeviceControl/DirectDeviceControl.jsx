@@ -1,15 +1,39 @@
-import React, { useState } from 'react';
-import DeviceController from '../../controllers/DeviceController';
+import React, { useState, useEffect } from 'react';
+import SystemController from '../../controllers/SystemController';
 import './DirectDeviceControl.css';
 
 const DirectDeviceControl = () => {
+  const [deviceStatus, setDeviceStatus] = useState({
+    fan: { status: false },
+    light: { status: false }
+  });
   const [feedback, setFeedback] = useState({ message: '', type: '' });
   const [loading, setLoading] = useState({
     fan: false,
     light: false
   });
 
-  // Clear feedback message after 3 seconds
+  // Lấy trạng thái thiết bị khi component được tải
+  useEffect(() => {
+    const loadDeviceStatus = async () => {
+      try {
+        const systemStatus = await SystemController.getSystemStatus();
+        setDeviceStatus(systemStatus.devices);
+      } catch (error) {
+        console.error('Error loading device status:', error);
+        showFeedback('Failed to load device status', 'error');
+      }
+    };
+    
+    loadDeviceStatus();
+    
+    // Cập nhật trạng thái thiết bị mỗi 10 giây
+    const interval = setInterval(loadDeviceStatus, 10000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  // Hiển thị thông báo và tự động ẩn sau 3 giây
   const showFeedback = (message, type = 'success') => {
     setFeedback({ message, type });
     setTimeout(() => {
@@ -17,12 +41,23 @@ const DirectDeviceControl = () => {
     }, 3000);
   };
 
-  // Handle fan control
+  // Điều khiển quạt
   const handleFanControl = async (action) => {
     setLoading(prev => ({ ...prev, fan: true }));
     try {
-      const result = await DeviceController.controlFan(action);
-      showFeedback(result.message || `Fan turned ${action} successfully`);
+      const turnOn = action === 'on';
+      await SystemController.controlFan(turnOn);
+      
+      // Cập nhật trạng thái ngay lập tức trên UI
+      setDeviceStatus(prev => ({
+        ...prev,
+        fan: {
+          ...prev.fan,
+          status: turnOn
+        }
+      }));
+      
+      showFeedback(`Fan turned ${action} successfully`);
     } catch (error) {
       showFeedback(`Failed to control fan: ${error.message}`, 'error');
     } finally {
@@ -30,12 +65,23 @@ const DirectDeviceControl = () => {
     }
   };
 
-  // Handle light control
+  // Điều khiển đèn
   const handleLightControl = async (action) => {
     setLoading(prev => ({ ...prev, light: true }));
     try {
-      const result = await DeviceController.controlLight(action);
-      showFeedback(result.message || `Light turned ${action} successfully`);
+      const turnOn = action === 'on';
+      await SystemController.controlLight(turnOn);
+      
+      // Cập nhật trạng thái ngay lập tức trên UI
+      setDeviceStatus(prev => ({
+        ...prev,
+        light: {
+          ...prev.light, 
+          status: turnOn
+        }
+      }));
+      
+      showFeedback(`Light turned ${action} successfully`);
     } catch (error) {
       showFeedback(`Failed to control light: ${error.message}`, 'error');
     } finally {
@@ -56,22 +102,27 @@ const DirectDeviceControl = () => {
       <div className="control-cards">
         {/* Fan Control Card */}
         <div className="control-card">
-          <div className="device-icon">
+          <div className={`device-icon ${deviceStatus.fan.status ? 'active' : ''}`}>
             <i className="fas fa-fan"></i>
           </div>
           <h3>Fan Control</h3>
+          <div className="status-indicator">
+            Status: <span className={deviceStatus.fan.status ? 'status-on' : 'status-off'}>
+              {deviceStatus.fan.status ? 'ON' : 'OFF'}
+            </span>
+          </div>
           <div className="control-buttons">
             <button 
-              className="control-button on"
+              className={`control-button on ${deviceStatus.fan.status ? 'active' : ''}`}
               onClick={() => handleFanControl('on')}
-              disabled={loading.fan}
+              disabled={loading.fan || deviceStatus.fan.status}
             >
               {loading.fan ? 'Processing...' : 'Turn On'}
             </button>
             <button 
-              className="control-button off"
+              className={`control-button off ${!deviceStatus.fan.status ? 'active' : ''}`}
               onClick={() => handleFanControl('off')}
-              disabled={loading.fan}
+              disabled={loading.fan || !deviceStatus.fan.status}
             >
               {loading.fan ? 'Processing...' : 'Turn Off'}
             </button>
@@ -80,22 +131,27 @@ const DirectDeviceControl = () => {
         
         {/* Light Control Card */}
         <div className="control-card">
-          <div className="device-icon">
+          <div className={`device-icon ${deviceStatus.light.status ? 'active' : ''}`}>
             <i className="fas fa-lightbulb"></i>
           </div>
           <h3>Light Control</h3>
+          <div className="status-indicator">
+            Status: <span className={deviceStatus.light.status ? 'status-on' : 'status-off'}>
+              {deviceStatus.light.status ? 'ON' : 'OFF'}
+            </span>
+          </div>
           <div className="control-buttons">
             <button 
-              className="control-button on"
+              className={`control-button on ${deviceStatus.light.status ? 'active' : ''}`}
               onClick={() => handleLightControl('on')}
-              disabled={loading.light}
+              disabled={loading.light || deviceStatus.light.status}
             >
               {loading.light ? 'Processing...' : 'Turn On'}
             </button>
             <button 
-              className="control-button off"
+              className={`control-button off ${!deviceStatus.light.status ? 'active' : ''}`}
               onClick={() => handleLightControl('off')}
-              disabled={loading.light}
+              disabled={loading.light || !deviceStatus.light.status}
             >
               {loading.light ? 'Processing...' : 'Turn Off'}
             </button>
@@ -112,7 +168,7 @@ const DirectDeviceControl = () => {
           </li>
           <li>
             <i className="fas fa-lightbulb"></i>
-            <span>Light turns ON automatically when light level is below 300 lux</span>
+            <span>Light turns ON automatically when motion is detected</span>
           </li>
           <li>
             <i className="fas fa-moon"></i>

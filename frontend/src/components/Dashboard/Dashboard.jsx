@@ -1,14 +1,20 @@
 import React, { useEffect, useState } from 'react';
+import SystemController from '../../controllers/SystemController';
 import SensorController from '../../controllers/SensorController';
-import DeviceController from '../../controllers/DeviceController';
 import SensorChart from './SensorChart';
 import './Dashboard.css';
 
 const Dashboard = () => {
-  const [sensorData, setSensorData] = useState({
-    temperature: 0,
-    humidity: 0,
-    motion: false
+  const [systemStatus, setSystemStatus] = useState({
+    devices: {
+      fan: { status: false },
+      light: { status: false }
+    },
+    sensors: {
+      temperature: '0.0',
+      humidity: '0.0',
+      motion: false
+    }
   });
   
   const [deviceStats, setDeviceStats] = useState({
@@ -24,15 +30,21 @@ const Dashboard = () => {
     const loadDashboardData = async () => {
       setIsLoading(true);
       try {
-        // Load sensor data
-        const sensorResult = await SensorController.getLatestReadings();
-        setSensorData(sensorResult);
+        // Lấy trạng thái toàn bộ hệ thống
+        const status = await SystemController.getSystemStatus();
+        setSystemStatus(status);
         
-        // Load device statistics
-        const deviceResult = await DeviceController.getDeviceStats();
-        setDeviceStats(deviceResult);
+        // Tính toán thống kê thiết bị
+        const deviceCount = Object.keys(status.devices).length;
+        const onlineCount = Object.values(status.devices).filter(device => device.status).length;
         
-        // Load recent alerts
+        setDeviceStats({
+          total: deviceCount,
+          online: onlineCount,
+          offline: deviceCount - onlineCount
+        });
+        
+        // Lấy cảnh báo gần đây
         const alertsResult = await SensorController.getRecentAlerts();
         setAlerts(alertsResult);
       } catch (error) {
@@ -44,10 +56,10 @@ const Dashboard = () => {
     
     loadDashboardData();
     
-    // Set up polling interval
+    // Thiết lập cập nhật định kỳ
     const interval = setInterval(loadDashboardData, 30000);
     
-    // Clean up interval on unmount
+    // Dọn dẹp khi component unmount
     return () => clearInterval(interval);
   }, []);
   
@@ -93,7 +105,7 @@ const Dashboard = () => {
                 <i className="fas fa-thermometer-half"></i>
               </div>
               <div className="reading-details">
-                <span className="reading-value">{sensorData.temperature}°C</span>
+                <span className="reading-value">{systemStatus.sensors.temperature}°C</span>
                 <span className="reading-label">Temperature</span>
               </div>
             </div>
@@ -103,18 +115,18 @@ const Dashboard = () => {
                 <i className="fas fa-tint"></i>
               </div>
               <div className="reading-details">
-                <span className="reading-value">{sensorData.humidity}%</span>
+                <span className="reading-value">{systemStatus.sensors.humidity}%</span>
                 <span className="reading-label">Humidity</span>
               </div>
             </div>
             
             <div className="reading">
-              <div className={`reading-icon motion-icon ${sensorData.motion ? 'active' : ''}`}>
+              <div className={`reading-icon motion-icon ${systemStatus.sensors.motion ? 'active' : ''}`}>
                 <i className="fas fa-running"></i>
               </div>
               <div className="reading-details">
-                <span className={`reading-value ${sensorData.motion ? 'active' : ''}`}>
-                  {sensorData.motion ? 'Detected' : 'None'}
+                <span className={`reading-value ${systemStatus.sensors.motion ? 'active' : ''}`}>
+                  {systemStatus.sensors.motion ? 'Detected' : 'None'}
                 </span>
                 <span className="reading-label">Motion</span>
               </div>
