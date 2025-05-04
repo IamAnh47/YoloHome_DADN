@@ -67,10 +67,10 @@ const getSensorDataWithinRange = async (range) => {
 const createSensorData = async (dataObj) => {
   const query = `
     INSERT INTO sensor_data (sensor_id, svalue, recorded_time)
-    VALUES ($1, $2, $3)
+    VALUES ($1, $2, NOW())
     RETURNING *;
   `;
-  const values = [dataObj.sensor_id, dataObj.svalue, dataObj.recorded_time];
+  const values = [dataObj.sensor_id, dataObj.svalue];
   try {
     const result = await pool.query(query, values);
     console.log("Insert thành công:", result.rows[0]); // Mn chỉ cần comment dòng này nếu không muốn in ra

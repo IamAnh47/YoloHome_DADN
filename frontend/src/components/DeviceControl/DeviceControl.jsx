@@ -72,9 +72,6 @@ const DeviceControl = () => {
         <h1>Device Control</h1>
       </div>
       
-      {/* Direct device control panel */}
-      <DirectDeviceControl />
-      
       {error && <div className="error-message">{error}</div>}
       
       <div className="registered-devices">
@@ -112,6 +109,11 @@ const DeviceControl = () => {
             <div className="no-devices">No devices found.</div>
           )}
         </div>
+      </div>
+      
+      {/* Direct device control panel */}
+      <div className="direct-control-section">
+        <DirectDeviceControl />
       </div>
     </div>
   );
