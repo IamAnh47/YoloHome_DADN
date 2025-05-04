@@ -133,6 +133,47 @@ class AdafruitService {
   async turnOffLight() {
     return this.controlDevice('light', false);
   }
+
+  /**
+   * Synchronize device states from Adafruit IO feeds to database
+   * @param {Function} updateDeviceFunc - Function to update device status in database
+   */
+  async syncDeviceStatesFromFeed(updateDeviceFunc) {
+    if (!this.enabled) {
+      logger.info('Adafruit IO sync skipped (DISABLED)');
+      return;
+    }
+    
+    try {
+      logger.info('Syncing device states from Adafruit IO feeds');
+      
+      // Get fan state from feed
+      const fanData = await this.getFeedData('fan');
+      if (fanData) {
+        const fanValue = parseInt(fanData.value);
+        const fanStatus = fanValue === 1 ? 'active' : 'inactive';
+        logger.info(`Fan feed value: ${fanValue}, status: ${fanStatus}`);
+        
+        // Update fan in database
+        await updateDeviceFunc('fan', fanStatus);
+      }
+      
+      // Get light state from feed
+      const lightData = await this.getFeedData('light');
+      if (lightData) {
+        const lightValue = parseInt(lightData.value);
+        const lightStatus = lightValue === 1 ? 'active' : 'inactive';
+        logger.info(`Light feed value: ${lightValue}, status: ${lightStatus}`);
+        
+        // Update light in database
+        await updateDeviceFunc('light', lightStatus);
+      }
+      
+      logger.info('Device sync from Adafruit IO completed');
+    } catch (error) {
+      logger.error(`Error syncing device states: ${error.message}`);
+    }
+  }
 }
 
 // Export singleton instance

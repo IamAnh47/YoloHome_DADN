@@ -9,6 +9,11 @@ const DeviceControl = () => {
   
   useEffect(() => {
     loadDevices();
+    
+    // Set up polling to refresh device states from the feed
+    const interval = setInterval(loadDevices, 5000);
+    
+    return () => clearInterval(interval);
   }, []);
   
   const loadDevices = async () => {
@@ -26,28 +31,44 @@ const DeviceControl = () => {
     }
   };
   
-  const handleToggleDevice = async (deviceId) => {
+  const handleToggleDevice = async (deviceId, deviceType) => {
     try {
       const deviceIndex = devices.findIndex(d => d.id === deviceId);
       if (deviceIndex === -1) return;
       
       const device = devices[deviceIndex];
-      const newStatus = device.status === 'active' ? 'inactive' : 'active';
+      const isCurrentlyActive = device.status === 'active';
+      const action = isCurrentlyActive ? 'off' : 'on';
       
       // Update UI immediately for better user experience
       const updatedDevices = [...devices];
       updatedDevices[deviceIndex] = { 
         ...device, 
-        status: newStatus,
+        status: isCurrentlyActive ? 'inactive' : 'active',
         lastUpdated: new Date().toISOString()
       };
       setDevices(updatedDevices);
       
-      // Call API to update device status
-      await DeviceController.updateDeviceStatus(deviceId, newStatus);
+      // Use device-specific control to send data to Adafruit feeds
+      let result;
+      
+      if (deviceType === 'fan') {
+        result = await DeviceController.controlFan(action);
+      } else if (deviceType === 'light') {
+        result = await DeviceController.controlLight(action);
+      } else {
+        // Fallback to generic device update for other device types
+        result = await DeviceController.updateDeviceStatus(deviceId, isCurrentlyActive ? 'inactive' : 'active');
+      }
+      
+      console.log(`Device ${deviceType} ${action} result:`, result);
+      
+      // Refresh the device list to get updated states from feeds
+      setTimeout(loadDevices, 1000);
+      
     } catch (err) {
-      setError('Failed to control device. Please try again.');
-      console.error('Error controlling device:', err);
+      setError(`Failed to control ${deviceType}. Please try again.`);
+      console.error(`Error controlling ${deviceType}:`, err);
       
       // Refresh devices to reflect actual state
       loadDevices();
@@ -97,7 +118,7 @@ const DeviceControl = () => {
                     <input
                       type="checkbox"
                       checked={device.status === 'active'}
-                      onChange={() => handleToggleDevice(device.id)}
+                      onChange={() => handleToggleDevice(device.id, device.type)}
                     />
                     <span className="toggle-slider"></span>
                   </label>

@@ -301,6 +301,15 @@ exports.controlFan = async (req, res, next) => {
       });
     }
     
+    // Update the device status in the database based on feed value
+    const fanDevice = await DeviceModel.findDeviceByType('fan');
+    if (fanDevice) {
+      // Convert action to device status
+      const status = action === 'on' ? 'active' : 'inactive';
+      // Update the device in the database
+      await DeviceModel.updateDevice(fanDevice.device_id, { status });
+    }
+    
     // Return success response
     res.status(200).json({
       success: true,
@@ -341,6 +350,15 @@ exports.controlLight = async (req, res, next) => {
         success: false,
         message: 'Failed to control light. Check Adafruit IO connection.'
       });
+    }
+    
+    // Update the device status in the database based on feed value
+    const lightDevice = await DeviceModel.findDeviceByType('light');
+    if (lightDevice) {
+      // Convert action to device status
+      const status = action === 'on' ? 'active' : 'inactive';
+      // Update the device in the database
+      await DeviceModel.updateDevice(lightDevice.device_id, { status });
     }
     
     // Return success response

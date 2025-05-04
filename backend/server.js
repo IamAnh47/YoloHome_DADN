@@ -5,6 +5,8 @@ const morgan = require('morgan');
 const path = require('path');
 const errorMiddleware = require('./middleware/errorMiddleware');
 const mqttService = require('./services/mqttService');
+const adafruitService = require('./services/adafruitService');
+const DeviceModel = require('./models/deviceModel');
 
 // Load environment variables
 dotenv.config({ path: './config/.env' });
@@ -61,6 +63,24 @@ const server = app.listen(PORT, () => {
 
 // Connect to MQTT broker
 mqttService.connect();
+
+// Helper function to update device status in the database
+const updateDeviceStatusFromFeed = async (deviceType, status) => {
+  try {
+    const device = await DeviceModel.findDeviceByType(deviceType);
+    if (device) {
+      await DeviceModel.updateDevice(device.device_id, { status });
+      console.log(`Updated ${deviceType} status to ${status} from feed`);
+    }
+  } catch (error) {
+    console.error(`Error updating ${deviceType} status: ${error.message}`);
+  }
+};
+
+// Set up periodic sync from Adafruit feeds to database (every 10 seconds)
+setInterval(async () => {
+  await adafruitService.syncDeviceStatesFromFeed(updateDeviceStatusFromFeed);
+}, 10000);
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
