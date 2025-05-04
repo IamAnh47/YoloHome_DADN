@@ -1,26 +1,24 @@
-// Error handling middleware
-const errorMiddleware = (err, req, res, next) => {
-    // Log error
-    console.error(err.stack);
-    
-    // Default error status and message
-    let statusCode = 500;
-    let message = 'Server Error';
-    
-    // Check if error has status code and message
-    if (err.statusCode) {
-      statusCode = err.statusCode;
-    }
-    
-    if (err.message) {
-      message = err.message;
-    }
-    
-    res.status(statusCode).json({
+// Error handler middleware
+const errorHandler = (err, req, res, next) => {
+  // Log error for developers
+  console.error('Error:', err.message);
+
+  // Check if error is a Postgres error
+  if (err.code && err.code.startsWith('PG')) {
+    return res.status(500).json({
       success: false,
-      error: message,
-      stack: process.env.NODE_ENV === 'production' ? undefined : err.stack
+      error: 'Database error',
+      message: process.env.NODE_ENV === 'production' ? 'Database operation failed' : err.message
     });
-  };
-  
-  module.exports = errorMiddleware;
+  }
+
+  // Default error response
+  const statusCode = res.statusCode !== 200 ? res.statusCode : 500;
+  res.status(statusCode).json({
+    success: false,
+    error: err.message || 'Server Error',
+    stack: process.env.NODE_ENV === 'production' ? null : err.stack
+  });
+};
+
+module.exports = errorHandler; 
