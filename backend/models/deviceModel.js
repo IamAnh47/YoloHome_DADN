@@ -188,6 +188,30 @@ class DeviceModel {
       throw new Error(`Error creating control log: ${error.message}`);
     }
   }
+  
+  static async updateDeviceByTypeWithStatus(deviceType, status) {
+    try {
+      const query = `
+        UPDATE device
+        SET status = $1,
+            created_time = NOW()
+        WHERE device_type = $2
+        RETURNING *
+      `;
+      
+      const values = [status, deviceType];
+      
+      const result = await db.query(query, values);
+      
+      if (result.rows.length === 0) {
+        return null;
+      }
+      
+      return result.rows[0];
+    } catch (error) {
+      throw new Error(`Error updating device by type: ${error.message}`);
+    }
+  }
 }
 
 module.exports = DeviceModel;

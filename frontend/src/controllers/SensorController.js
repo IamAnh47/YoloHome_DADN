@@ -1,6 +1,13 @@
 import apiService from '../services/apiService';
 
 class SensorController {
+  // Cache storage for different data types
+  static cache = {
+    readings: null,
+    history: {},
+    alerts: []
+  };
+  
   // Cached data timestamps
   static sensorDataTimestamps = {
     readings: 0,
@@ -79,15 +86,19 @@ class SensorController {
           const data = response.data.data;
           console.log('API response data:', data);
           
-          // Update timestamp for this data type
-          this.updateTimestamp('readings');
-          
-          return {
+          // Format data consistently
+          const formattedData = {
             // Ensure values are numbers before formatting
             temperature: (typeof data.temperature === 'number' ? data.temperature : parseFloat(data.temperature || 0)).toFixed(1),
             humidity: (typeof data.humidity === 'number' ? data.humidity : parseFloat(data.humidity || 0)).toFixed(1),
             motion: Boolean(data.motion)
           };
+          
+          // Update cache and timestamp
+          this.cache.readings = formattedData;
+          this.updateTimestamp('readings');
+          
+          return formattedData;
         }
         
         console.warn('API response structure:', JSON.stringify(response.data));
@@ -120,17 +131,24 @@ class SensorController {
         const response = await apiService.get(`/sensors/history/${sensorType}${cacheBuster}`);
         
         if (response.data && response.data.data) {
-          // Update timestamp for this history subtype
-          this.updateTimestamp('history', sensorType);
-          
-          // Additional logging to debug
-          console.log(`Received ${sensorType} ${timeRange} data:`, response.data);
-          
           // Ensure data is properly formatted for charts
           const formattedData = response.data.data.map(item => ({
             timestamp: item.timestamp,
             value: typeof item.value === 'number' ? item.value : parseFloat(item.value || 0)
           }));
+          
+          // Store data in cache with the key that includes timeRange
+          const cacheKey = `${sensorType}_${timeRange}`;
+          if (!this.cache.history[sensorType]) {
+            this.cache.history[sensorType] = {};
+          }
+          this.cache.history[sensorType][timeRange] = formattedData;
+          
+          // Update timestamp for this history subtype
+          this.updateTimestamp('history', sensorType);
+          
+          // Additional logging to debug
+          console.log(`Received ${sensorType} ${timeRange} data:`, response.data);
           
           return formattedData;
         }
@@ -139,7 +157,7 @@ class SensorController {
         throw new Error('Invalid data format received from API');
       } else {
         console.log(`Using cached ${sensorType} history data for ${timeRange}`);
-        return this.getFromCache('history', sensorType);
+        return this.getFromCache('history', sensorType, timeRange);
       }
     } catch (error) {
       console.error(`Error fetching ${sensorType} history:`, error);
@@ -160,16 +178,19 @@ class SensorController {
         const response = await apiService.get('/alerts/recent' + cacheBuster);
         
         if (response.data && response.data.data && Array.isArray(response.data.data)) {
-          // Update timestamp for alerts
-          this.updateTimestamp('alerts');
-          
-          return response.data.data.map(alert => ({
+          const alertsData = response.data.data.map(alert => ({
             id: alert.alert_id,
             type: alert.alert_type.toLowerCase(),
             message: alert.amessage,
             timestamp: alert.alerted_time,
             status: alert.status
           }));
+          
+          // Update cache and timestamp
+          this.cache.alerts = alertsData;
+          this.updateTimestamp('alerts');
+          
+          return alertsData;
         }
         
         console.warn('API response structure:', JSON.stringify(response.data));
@@ -185,15 +206,32 @@ class SensorController {
   }
   
   /**
-   * Get data from cache (placeholder for future implementation)
+   * Get data from cache
    * @param {string} dataType - Type of data (readings, history, alerts)
-   * @param {string} [subType] - Subtype for history data
+   * @param {string} [subType] - Subtype for history data (e.g., 'temperature')
+   * @param {string} [timeRange] - Time range for history data (e.g., 'day', 'week')
    * @returns {Object|Array} Cached data
    */
-  static getFromCache(dataType, subType = null) {
-    // This would be implemented with actual cache storage
-    // For now, we'll just throw an error to force fresh data fetch
-    throw new Error('Cache data unavailable');
+  static getFromCache(dataType, subType = null, timeRange = 'day') {
+    // Return from appropriate cache based on data type
+    if (dataType === 'history' && subType) {
+      if (!this.cache.history[subType] || !this.cache.history[subType][timeRange]) {
+        throw new Error(`No cached data for ${subType} ${timeRange}`);
+      }
+      return this.cache.history[subType][timeRange];
+    } else if (dataType === 'readings') {
+      if (!this.cache.readings) {
+        throw new Error('No cached readings data');
+      }
+      return this.cache.readings;
+    } else if (dataType === 'alerts') {
+      if (!this.cache.alerts || this.cache.alerts.length === 0) {
+        throw new Error('No cached alerts data');
+      }
+      return this.cache.alerts;
+    }
+    
+    throw new Error(`Unknown cache type: ${dataType}`);
   }
 }
 

@@ -316,6 +316,19 @@ exports.controlFan = async (req, res, next) => {
     // Update the device in the database
     const updatedDevice = await DeviceModel.updateDevice(fanDevice.device_id, { status });
     
+    // Perform a synchronization to ensure database is in sync with Adafruit
+    setTimeout(async () => {
+      try {
+        await adafruitService.syncDeviceStatesFromFeed(async (deviceType, deviceStatus) => {
+          if (deviceType === 'fan') {
+            await DeviceModel.updateDeviceByTypeWithStatus(deviceType, deviceStatus);
+          }
+        });
+      } catch (syncError) {
+        console.error('Error during feed synchronization:', syncError);
+      }
+    }, 1000); // Wait 1 second for Adafruit to process the change
+    
     // Return success response with device data
     res.status(200).json({
       success: true,
@@ -379,6 +392,19 @@ exports.controlLight = async (req, res, next) => {
     
     // Update the device in the database
     const updatedDevice = await DeviceModel.updateDevice(lightDevice.device_id, { status });
+    
+    // Perform a synchronization to ensure database is in sync with Adafruit
+    setTimeout(async () => {
+      try {
+        await adafruitService.syncDeviceStatesFromFeed(async (deviceType, deviceStatus) => {
+          if (deviceType === 'light') {
+            await DeviceModel.updateDeviceByTypeWithStatus(deviceType, deviceStatus);
+          }
+        });
+      } catch (syncError) {
+        console.error('Error during feed synchronization:', syncError);
+      }
+    }, 1000); // Wait 1 second for Adafruit to process the change
     
     // Return success response with device data
     res.status(200).json({

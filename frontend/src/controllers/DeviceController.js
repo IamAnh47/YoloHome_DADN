@@ -119,10 +119,17 @@ class DeviceController {
     try {
       // Use the deviceService to control the fan
       const result = await deviceService.controlFan(action);
+      
+      // Get the latest device state directly after sending command
+      // This ensures we get the status after the feed update and database sync
+      await new Promise(resolve => setTimeout(resolve, 500)); // Short delay for DB update
+      const devices = await this.getAllDevices();
+      const fanDevice = devices.find(device => device.type === 'fan');
+      
       return {
         success: result.success,
         message: result.message,
-        data: result.data
+        data: fanDevice || result.data
       };
     } catch (error) {
       console.error(`Error controlling fan (${action}):`, error);
@@ -134,10 +141,17 @@ class DeviceController {
     try {
       // Use the deviceService to control the light
       const result = await deviceService.controlLight(action);
+      
+      // Get the latest device state directly after sending command
+      // This ensures we get the status after the feed update and database sync
+      await new Promise(resolve => setTimeout(resolve, 500)); // Short delay for DB update
+      const devices = await this.getAllDevices();
+      const lightDevice = devices.find(device => device.type === 'light');
+      
       return {
         success: result.success,
         message: result.message,
-        data: result.data
+        data: lightDevice || result.data
       };
     } catch (error) {
       console.error(`Error controlling light (${action}):`, error);

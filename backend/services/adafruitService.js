@@ -99,7 +99,10 @@ class AdafruitService {
     const value = turnOn ? 1 : 0;
     
     // Send command to Adafruit IO
-    return this.sendToFeed(deviceType, value);
+    const result = await this.sendToFeed(deviceType, value);
+    logger.info(`Device control sent to Adafruit IO: ${deviceType} = ${value}, result: ${result ? 'success' : 'failed'}`);
+    
+    return result;
   }
   
   /**
@@ -156,6 +159,7 @@ class AdafruitService {
         
         // Update fan in database
         await updateDeviceFunc('fan', fanStatus);
+        logger.info(`Fan status updated in database: ${fanStatus}`);
       }
       
       // Get light state from feed
@@ -167,11 +171,17 @@ class AdafruitService {
         
         // Update light in database
         await updateDeviceFunc('light', lightStatus);
+        logger.info(`Light status updated in database: ${lightStatus}`);
       }
       
       logger.info('Device sync from Adafruit IO completed');
+      return {
+        fan: fanData ? parseInt(fanData.value) : null,
+        light: lightData ? parseInt(lightData.value) : null
+      };
     } catch (error) {
       logger.error(`Error syncing device states: ${error.message}`);
+      return null;
     }
   }
 }

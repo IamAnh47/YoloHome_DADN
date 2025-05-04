@@ -73,43 +73,27 @@ const DeviceControl = () => {
       
       if (deviceType === 'fan') {
         result = await DeviceController.controlFan(action);
+        console.log(`Fan ${action} result:`, result);
       } else if (deviceType === 'light') {
         result = await DeviceController.controlLight(action);
+        console.log(`Light ${action} result:`, result);
       } else {
         // Fallback to generic device update for other device types
         result = await DeviceController.updateDeviceStatus(deviceId, isCurrentlyActive ? 'inactive' : 'active');
+        console.log(`Generic device update result:`, result);
       }
       
-      console.log(`Device ${deviceType} ${action} result:`, result);
+      // Wait for a moment to allow database updates to complete
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Update the UI immediately with the response data
-      if (result && result.data) {
-        const serverResponse = result.data;
-        
-        // For integrated response format from backend
-        if (serverResponse.device_id && deviceId === serverResponse.device_id) {
-          // Update with the actual server state
-          setDevices(currentDevices => {
-            const deviceIndex = currentDevices.findIndex(d => d.id === deviceId);
-            if (deviceIndex !== -1) {
-              const updatedDevices = [...currentDevices];
-              updatedDevices[deviceIndex] = {
-                ...currentDevices[deviceIndex],
-                status: serverResponse.status || currentDevices[deviceIndex].status
-              };
-              return updatedDevices;
-            }
-            return currentDevices;
-          });
-        }
-      }
+      // After sending command, fetch the actual state from database 
+      // to ensure UI reflects actual device state
+      loadDevices();
       
-      // Clear the toggling state after a short delay
+      // Clear the toggling state after the refresh is complete
       setTimeout(() => {
         setIsToggling(prev => ({ ...prev, [deviceId]: false }));
-        // Refresh all devices to ensure consistency
-        loadDevices();
-      }, 1000);
+      }, 500);
       
     } catch (err) {
       setError(`Failed to control ${deviceType}. Please try again.`);

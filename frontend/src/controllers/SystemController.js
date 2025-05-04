@@ -1,6 +1,11 @@
 import apiService from '../services/apiService';
 
 class SystemController {
+  // Cache storage for system data
+  static cache = {
+    systemStatus: null
+  };
+  
   // Store last fetched timestamp to check data freshness
   static lastFetchTime = 0;
   static cacheTTL = 5000; // 5 seconds TTL for cache
@@ -37,7 +42,8 @@ class SystemController {
         const response = await apiService.get('/status' + cacheBuster);
         
         if (response.data && response.data.data) {
-          // Update fetch time
+          // Store data in cache and update fetch time
+          this.cache.systemStatus = response.data.data;
           this.updateFetchTime();
           return response.data.data;
         }
@@ -55,13 +61,14 @@ class SystemController {
   }
   
   /**
-   * Get data from cache (placeholder for future implementation)
+   * Get data from cache
    * @returns {Object} Cached data
    */
   static getFromCache() {
-    // This would be implemented with actual cache storage
-    // For now, we'll just throw an error to force fresh data fetch
-    throw new Error('Cache data unavailable');
+    if (!this.cache.systemStatus) {
+      throw new Error('No cached system status data');
+    }
+    return this.cache.systemStatus;
   }
   
   /**
