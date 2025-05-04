@@ -104,14 +104,18 @@ class SensorController {
   static async getSensorHistory(sensorType, timeRange = 'day', forceFresh = false) {
     try {
       if (!this.isDataFresh('history', sensorType) || forceFresh) {
-        // Lấy dữ liệu từ API
-        const limit = timeRange === 'day' ? 24 : 168; // 24 hours or 7 days (168 hours)
-        const cacheBuster = `?limit=${limit}&_t=${Date.now()}`;
+        // Get data from API with the specific timeRange
+        const limit = timeRange === 'day' ? 20 : 7; 
+        const cacheBuster = `?timeRange=${timeRange}&limit=${limit}&_t=${Date.now()}`;
         const response = await apiService.get(`/sensors/history/${sensorType}${cacheBuster}`);
         
         if (response.data && response.data.data) {
           // Update timestamp for this history subtype
           this.updateTimestamp('history', sensorType);
+          
+          // Additional logging to debug
+          console.log(`Received ${sensorType} ${timeRange} data:`, response.data);
+          
           return response.data.data;
         }
         

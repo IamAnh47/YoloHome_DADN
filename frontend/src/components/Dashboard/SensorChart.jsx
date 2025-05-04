@@ -12,6 +12,7 @@ const SensorChart = ({ sensorType, title, unit }) => {
     setIsLoading(true);
     try {
       const data = await SensorController.getSensorHistory(sensorType, timeRange);
+      console.log(`Chart data for ${sensorType} (${timeRange}):`, data);
       setChartData(data);
     } catch (error) {
       console.error(`Error loading ${sensorType} chart data:`, error);
@@ -22,13 +23,26 @@ const SensorChart = ({ sensorType, title, unit }) => {
   
   useEffect(() => {
     loadChartData();
+    
+    // Set up auto-refresh interval (every 5 minutes)
+    const refreshInterval = setInterval(() => {
+      loadChartData();
+    }, 5 * 60 * 1000);
+    
+    return () => clearInterval(refreshInterval);
   }, [sensorType, timeRange, loadChartData]);
   
   const formatTime = (timestamp) => {
+    if (!timestamp) return '';
     const date = new Date(timestamp);
-    return timeRange === 'day' 
-      ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      : date.toLocaleDateString();
+    
+    if (timeRange === 'day') {
+      // For day view, show time in HH:MM format
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else {
+      // For week view, show date in MM/DD format
+      return date.toLocaleDateString([], { month: 'numeric', day: 'numeric' });
+    }
   };
   
   // Find min and max values for the chart scale
@@ -74,7 +88,13 @@ const SensorChart = ({ sensorType, title, unit }) => {
     // Calculate step based on number of points
     const step = chartWidth / (chartData.length - 1);
     
-    return chartData.map((item, index) => {
+    // For day view, order points from oldest to newest
+    // For week view, the data is already ordered by date
+    const sortedData = timeRange === 'day' 
+      ? [...chartData].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+      : chartData;
+    
+    return sortedData.map((item, index) => {
       const x = index * step;
       const y = chartHeight - ((item.value - minValue) / range * chartHeight);
       return { x, y, value: item.value, timestamp: item.timestamp };
@@ -113,6 +133,14 @@ const SensorChart = ({ sensorType, title, unit }) => {
     return path;
   };
   
+  const getChartDescription = () => {
+    if (timeRange === 'day') {
+      return `Showing the 20 most recent readings from today`;
+    } else {
+      return `Showing daily averages for the past 7 days`;
+    }
+  };
+  
   if (isLoading) {
     return (
       <div className="sensor-chart">
@@ -143,6 +171,8 @@ const SensorChart = ({ sensorType, title, unit }) => {
           </button>
         </div>
       </div>
+      
+      <div className="chart-description">{getChartDescription()}</div>
       
       <div className="chart-container">
         {chartData.length > 0 ? (
@@ -205,15 +235,24 @@ const SensorChart = ({ sensorType, title, unit }) => {
               
               {/* X-axis labels */}
               <div className="x-axis-labels">
-                {points.map((point, index) => (
-                  <div 
-                    key={index} 
-                    className="x-label" 
-                    style={{ left: `${point.x}%` }}
-                  >
-                    {formatTime(point.timestamp)}
-                  </div>
-                ))}
+                {points.length > 0 && (
+                  <>
+                    {/* Show fewer labels for better readability */}
+                    {points.filter((_, i) => 
+                      timeRange === 'day' 
+                        ? i % Math.ceil(points.length / 5) === 0 || i === points.length - 1
+                        : true // Show all labels for week view
+                    ).map((point, index) => (
+                      <div 
+                        key={index} 
+                        className="x-label" 
+                        style={{ left: `${point.x}%` }}
+                      >
+                        {formatTime(point.timestamp)}
+                      </div>
+                    ))}
+                  </>
+                )}
               </div>
             </div>
           </>

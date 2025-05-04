@@ -316,12 +316,21 @@ exports.getLatestReadings = async (req, res, next) => {
 exports.getSensorHistoryByType = async (req, res, next) => {
   try {
     const { type } = req.params;
+    const timeRange = req.query.timeRange || 'day';
     
     // Validate sensor type
     if (!type || !['temperature', 'humidity', 'motion'].includes(type)) {
       return res.status(400).json({
         success: false,
         message: 'Invalid sensor type'
+      });
+    }
+    
+    // Validate time range
+    if (!['day', 'week'].includes(timeRange)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid time range. Use "day" or "week"'
       });
     }
     
@@ -335,14 +344,14 @@ exports.getSensorHistoryByType = async (req, res, next) => {
       });
     }
     
-    // Get the historical data (default last 24 entries)
-    const limit = req.query.limit ? parseInt(req.query.limit) : 24;
-    const historyData = await SensorModel.getSensorHistory(sensor.sensor_id, limit);
+    // Get the historical data (limit is handled inside the model based on timeRange)
+    const limit = req.query.limit ? parseInt(req.query.limit) : (timeRange === 'day' ? 20 : 7);
+    const historyData = await SensorModel.getSensorHistory(sensor.sensor_id, limit, timeRange);
     
     // Format the data for UI
     const formattedData = historyData.map(item => {
       return {
-        timestamp: item.recorded_time,
+        timestamp: timeRange === 'week' ? item.day : item.recorded_time,
         value: type === 'motion' ? (item.svalue > 0) : parseFloat(item.svalue)
       };
     });
@@ -350,6 +359,7 @@ exports.getSensorHistoryByType = async (req, res, next) => {
     res.status(200).json({
       success: true,
       count: formattedData.length,
+      timeRange: timeRange,
       data: formattedData
     });
   } catch (error) {

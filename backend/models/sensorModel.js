@@ -201,18 +201,54 @@ class SensorModel {
     }
   }
   
-  static async getSensorHistory(sensorId, limit = 24) {
+  static async getSensorHistory(sensorId, limit = 24, timeRange = 'day') {
     try {
-      const query = `
-        SELECT data_id, sensor_id, svalue, recorded_time
-        FROM sensor_data
-        WHERE sensor_id = $1
-        ORDER BY recorded_time DESC
-        LIMIT $2
-      `;
-      
-      const result = await db.query(query, [sensorId, limit]);
-      return result.rows;
+      // For day view: Get the 20 most recent readings for the current day
+      if (timeRange === 'day') {
+        const query = `
+          SELECT data_id, sensor_id, svalue, recorded_time
+          FROM sensor_data
+          WHERE sensor_id = $1
+          AND recorded_time >= CURRENT_DATE
+          ORDER BY recorded_time DESC
+          LIMIT 20
+        `;
+        
+        const result = await db.query(query, [sensorId]);
+        return result.rows;
+      } 
+      // For week view: Get daily averages for the past 7 days
+      else if (timeRange === 'week') {
+        const query = `
+          SELECT 
+            sensor_id,
+            DATE(recorded_time) as day,
+            AVG(CAST(svalue AS FLOAT)) as svalue,
+            MAX(recorded_time) as recorded_time
+          FROM sensor_data
+          WHERE sensor_id = $1
+          AND recorded_time >= CURRENT_DATE - INTERVAL '7 days'
+          GROUP BY sensor_id, DATE(recorded_time)
+          ORDER BY day DESC
+          LIMIT 7
+        `;
+        
+        const result = await db.query(query, [sensorId]);
+        return result.rows;
+      }
+      // Default case: return a limited number of records
+      else {
+        const query = `
+          SELECT data_id, sensor_id, svalue, recorded_time
+          FROM sensor_data
+          WHERE sensor_id = $1
+          ORDER BY recorded_time DESC
+          LIMIT $2
+        `;
+        
+        const result = await db.query(query, [sensorId, limit]);
+        return result.rows;
+      }
     } catch (error) {
       throw new Error(`Error getting sensor history: ${error.message}`);
     }
