@@ -357,3 +357,44 @@ exports.getSensorHistoryByType = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Create new sensor data
+// @route   POST /api/sensors/data
+// @access  Private
+exports.createSensorData = async (req, res, next) => {
+  try {
+    const { sensor_id, value, timestamp } = req.body;
+    
+    // Validate input
+    if (!sensor_id || value === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide sensor_id and value for the sensor data'
+      });
+    }
+    
+    // Add sensor data
+    const data = await SensorModel.insertSensorData(sensor_id, value, timestamp);
+    
+    // If this is temperature data, run the prediction
+    const sensor = await SensorModel.getSensorById(sensor_id);
+    if (sensor && sensor.sensor_type === 'temperature') {
+      // Run temperature prediction if available
+      try {
+        const prediction = await predictionService.predictTemperature(value);
+        // Include prediction in response
+        data.prediction = prediction;
+      } catch (predictionError) {
+        console.error('Error running temperature prediction:', predictionError);
+      }
+    }
+    
+    res.status(201).json({
+      success: true,
+      data
+    });
+  } catch (error) {
+    console.error('Error creating sensor data:', error);
+    next(error);
+  }
+};
