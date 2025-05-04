@@ -1,62 +1,70 @@
 .device-control-container {
-  padding: 1rem;
+  padding: 20px;
 }
 
 .page-header {
-  margin-bottom: 1.5rem;
+  margin-bottom: 20px;
 }
 
 .page-header h1 {
   margin: 0;
-  color: #2c3e50;
-  font-weight: 600;
+  color: #333;
 }
 
 .registered-devices {
-  margin-top: 2rem;
+  margin-bottom: 30px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 20px;
 }
 
 .registered-devices h2 {
-  margin-bottom: 1.5rem;
-  color: #2c3e50;
-  font-weight: 600;
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 1.4rem;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
 }
 
 .device-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
+  gap: 20px;
 }
 
 .device-card {
-  background-color: #ffffff;
+  background-color: #f9f9f9;
   border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 15px;
+  transition: transform 0.2s;
 }
 
 .device-card:hover {
   transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .device-header {
   display: flex;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 15px;
 }
 
 .device-icon {
   width: 45px;
   height: 45px;
   border-radius: 50%;
-  background-color: #f8f9fa;
+  background-color: #eef;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
-  margin-right: 1rem;
-  color: #2c3e50;
+  font-size: 1.3rem;
+  color: #5567dd;
+  margin-right: 15px;
+  flex-shrink: 0;
 }
 
 .device-info {
@@ -64,49 +72,49 @@
 }
 
 .device-info h3 {
-  margin: 0;
-  font-size: 1.25rem;
-  color: #2c3e50;
+  margin: 0 0 5px 0;
+  font-size: 1.1rem;
+  color: #333;
 }
 
 .device-info p {
-  margin: 0.25rem 0 0;
-  color: #6c757d;
-  font-size: 0.875rem;
+  margin: 0;
+  font-size: 0.9rem;
+  color: #666;
 }
 
 .device-status {
-  margin-left: 1rem;
+  margin-left: 15px;
 }
 
 .device-status span {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 1rem;
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 10px;
 }
 
 .device-status span.active {
-  background-color: #d4edda;
-  color: #155724;
+  background-color: rgba(76, 175, 80, 0.2);
+  color: #2e7d32;
 }
 
 .device-status span.inactive {
-  background-color: #f8d7da;
-  color: #721c24;
+  background-color: rgba(158, 158, 158, 0.2);
+  color: #616161;
 }
 
 .device-control-panel {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
 }
 
 .toggle-switch {
   position: relative;
   display: inline-block;
-  width: 60px;
-  height: 34px;
+  width: 50px;
+  height: 24px;
 }
 
 .toggle-switch input {
@@ -123,28 +131,24 @@
   right: 0;
   bottom: 0;
   background-color: #ccc;
-  transition: .4s;
-  border-radius: 34px;
+  border-radius: 12px;
+  transition: 0.3s;
 }
 
 .toggle-slider:before {
   position: absolute;
   content: "";
-  height: 26px;
-  width: 26px;
+  height: 16px;
+  width: 16px;
   left: 4px;
   bottom: 4px;
   background-color: white;
-  transition: .4s;
   border-radius: 50%;
+  transition: 0.3s;
 }
 
 input:checked + .toggle-slider {
-  background-color: #2ecc71;
-}
-
-input:focus + .toggle-slider {
-  box-shadow: 0 0 1px #2ecc71;
+  background-color: #4CAF50;
 }
 
 input:checked + .toggle-slider:before {
@@ -152,25 +156,32 @@ input:checked + .toggle-slider:before {
 }
 
 .error-message {
-  background-color: #f8d7da;
-  color: #721c24;
-  padding: 0.75rem 1.25rem;
-  border-radius: 0.25rem;
-  margin-bottom: 1.5rem;
-}
-
-.loading-indicator {
-  text-align: center;
-  padding: 2rem;
-  color: #6c757d;
+  background-color: #fff3f3;
+  color: #d32f2f;
+  padding: 10px 15px;
+  border-radius: 4px;
+  border-left: 4px solid #d32f2f;
+  margin-bottom: 20px;
 }
 
 .no-devices {
+  padding: 30px;
   text-align: center;
-  padding: 2rem;
-  background-color: #f8f9fa;
+  color: #666;
+  font-size: 1.1rem;
+  background-color: #f9f9f9;
   border-radius: 8px;
-  color: #6c757d;
+}
+
+.loading-indicator {
+  padding: 30px;
+  text-align: center;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.direct-control-section {
+  margin-top: 20px;
 }
 
 @media (max-width: 768px) {
