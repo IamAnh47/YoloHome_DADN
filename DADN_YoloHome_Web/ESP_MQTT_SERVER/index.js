@@ -57,7 +57,7 @@ const feeds = [
   // 'airquality',
   'humidity',
   // 'lightintensity',
-  // 'motion',
+  'motion',
   // 'pressure',
   'temperature'
 ];
@@ -95,7 +95,7 @@ async function fetchAllFeeds() {
         if (data && data.length > 0) {
           const record = data[0];
           const feedValue = parseFloat(record.value);
-          const createdAt = record.created_at;
+          // const createdAt = record.created_at;
           // console.log(`Feed: ${currentFeed} | Giá trị: ${feedValue} | Thời gian: ${createdAt}`);
 
           const sensorRecord = await sensorModel.getSensorByType(currentFeed);
@@ -104,14 +104,13 @@ async function fetchAllFeeds() {
             const sensorId = sensorRecord.sensor_id;
             const payload = {
               sensor_id: sensorId,
-              svalue: feedValue,
-              recorded_time: createdAt
+              svalue: feedValue
             };
             // Ở hàm này nếu mn không muốn in ra thì vào trong models comment lại
             const insertResult = await sensorModel.createSensorData(payload);
             // console.log(`Dữ liệu được lưu cho sensor_type "${currentFeed}" (sensor_id: ${sensorId}):`, insertResult);
 
-            io.emit('newData', { feed: currentFeed, value: feedValue, created_at: createdAt });
+            io.emit('newData', { feed: currentFeed, value: feedValue});
           } else {
             console.error(`Không tìm thấy sensor nào với sensor_type: ${currentFeed}`);
           }
@@ -130,7 +129,7 @@ async function fetchAllFeeds() {
 }
 
 // Timer, nên tăng lên nha vì ADA nó có giới hạn số request trên 1 thời gian nhất định, để tầm 1s là đẹp á
-setInterval(fetchAllFeeds, 2000);
+setInterval(fetchAllFeeds, 3000);
 
 app.use(errorHandler);
 

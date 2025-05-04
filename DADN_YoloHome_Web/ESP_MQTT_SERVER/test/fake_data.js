@@ -15,7 +15,7 @@ const feeds = [
   'humidity',
   // 'airquality',
   // 'lightintensity',
-  // 'motion',
+  'motion',
   // 'pressure'
 ];
 
@@ -27,7 +27,12 @@ client.on('connect', () => {
       await Promise.all(
         feeds.map(feed => {
           return new Promise((resolve, reject) => {
-            const value = Math.floor(Math.random() * 100) + 1;
+            let value = 0;
+            if(feed === 'motion') {
+              value = Math.floor(Math.random() * 2);
+            } else {
+              value = Math.floor(Math.random() * 100) + 1;
+            }
             const topic = `${process.env.ADA_USERNAME}/feeds/dadn.${feed}`;
             client.publish(topic, value.toString(), (err) => {
               if (err) {
@@ -45,5 +50,5 @@ client.on('connect', () => {
     } catch (error) {
       console.error('Có lỗi khi gửi dữ liệu:', error);
     }
-  }, 1000); // Mn chỉnh timer để thay đổi thời gian send fake data
+  }, 3000); // Mn chỉnh timer để thay đổi thời gian send fake data
 });
