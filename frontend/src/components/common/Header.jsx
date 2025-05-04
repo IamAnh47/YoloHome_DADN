@@ -22,7 +22,7 @@ const Header = () => {
       </div>
       
       <div className="header-right">
-        <div className="header-actions">
+      <div className="header-actions">
           <button className="icon-button" title="Settings">
             <i className="fas fa-cog"></i>
           </button>
@@ -34,9 +34,9 @@ const Header = () => {
             title="Logout"
             onClick={handleLogout}
           >
-            <i className="fas fa-sign-out-alt"></i>
-            <span>Logout</span>
-          </button>
+          <i className="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </button>
         </div>
       </div>
     </header>

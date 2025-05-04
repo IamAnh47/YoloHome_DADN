@@ -586,6 +586,6 @@ exports.getDeviceStatus = async (req, res, next) => {
     });
   } catch (error) {
     console.error('Error getting device status:', error);
-    next(error);
-  }
-};
+      next(error);
+    }
+  };

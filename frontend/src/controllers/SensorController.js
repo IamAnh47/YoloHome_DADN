@@ -88,18 +88,18 @@ class SensorController {
         console.log('Using cached sensor readings');
       }
       
-      // Fallback to minimal data
+      // Fallback to mock data
       return {
-        temperature: '0.0',
-        humidity: '0.0',
+        temperature: '25.0',
+        humidity: '60.0',
         motion: false
       };
     } catch (error) {
       console.error('Error fetching sensor readings:', error);
-      // Fallback to minimal data
+      // Fallback to mock data
       return {
-        temperature: '0.0',
-        humidity: '0.0',
+        temperature: '25.0',
+        humidity: '60.0',
         motion: false
       };
     }
@@ -173,8 +173,44 @@ class SensorController {
    * @returns {Array} Generated mock data
    */
   static generateMockHistoryData(sensorType, timeRange = 'day') {
-    // Return empty array instead of mock data
-    return [];
+    const now = new Date();
+    const data = [];
+    const points = timeRange === 'day' ? 24 : 7;
+    
+    for (let i = points - 1; i >= 0; i--) {
+      const timestamp = new Date(now);
+      if (timeRange === 'day') {
+        timestamp.setHours(now.getHours() - i);
+      } else {
+        timestamp.setDate(now.getDate() - i);
+      }
+      
+      let value;
+      if (sensorType === 'temperature') {
+        // Create a realistic temperature pattern
+        const baseTemp = 25;
+        const timeOfDay = timeRange === 'day' ? (24 - i) % 24 : 12;
+        const dayCycle = Math.sin((timeOfDay - 6) * Math.PI / 12) * 3; // Peak at noon
+        value = (baseTemp + dayCycle + (Math.random() * 1.5 - 0.75)).toFixed(1);
+      } else if (sensorType === 'humidity') {
+        // Inverse relationship with temperature
+        const timeOfDay = timeRange === 'day' ? (24 - i) % 24 : 12;
+        const dayCycle = -Math.sin((timeOfDay - 6) * Math.PI / 12) * 10;
+        value = (60 + dayCycle + (Math.random() * 5 - 2.5)).toFixed(1);
+      } else {
+        // Motion typically during day hours
+        const hour = timestamp.getHours();
+        const isActiveHour = hour >= 7 && hour <= 22;
+        value = isActiveHour && Math.random() > 0.6 ? 1 : 0;
+      }
+      
+      data.push({
+        timestamp: timestamp.toISOString(),
+        value: sensorType === 'motion' ? value : parseFloat(value)
+      });
+    }
+    
+    return data;
   }
   
   /**
@@ -216,7 +252,29 @@ class SensorController {
   }
   
   static getMockAlerts() {
-    return [];
+    return [
+      {
+        id: 1,
+        type: 'temperature',
+        message: 'Temperature exceeded 30°C',
+        timestamp: new Date(Date.now() - 30 * 60000).toISOString(),
+        status: 'active'
+      },
+      {
+        id: 2,
+        type: 'motion',
+        message: 'Motion detected in living room',
+        timestamp: new Date(Date.now() - 45 * 60000).toISOString(),
+        status: 'active'
+      },
+      {
+        id: 3,
+        type: 'humidity',
+        message: 'Humidity level below 30%',
+        timestamp: new Date(Date.now() - 120 * 60000).toISOString(),
+        status: 'resolved'
+      }
+    ];
   }
 }
 
