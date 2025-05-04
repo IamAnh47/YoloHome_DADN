@@ -1,0 +1,98 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1.5rem;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  height: 60px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #3498db;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.logo i {
+  margin-right: 0.5rem;
+  font-size: 1.25rem;
+}
+
+.date {
+  margin-left: 2rem;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.icon-button {
+  background: none;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.icon-button:hover {
+  background-color: #f8f9fa;
+  color: #3498db;
+}
+
+.logout-button {
+  width: auto;
+  border-radius: 20px;
+  padding: 0 1rem;
+  background-color: #f8f9fa;
+}
+
+.logout-button i {
+  margin-right: 0.5rem;
+}
+
+.logout-button:hover {
+  background-color: #e9ecef;
+  color: #e74c3c;
+}
+
+@media (max-width: 768px) {
+  .date {
+    display: none;
+  }
+  
+  .logout-button span {
+    display: none;
+  }
+  
+  .logout-button {
+    width: 40px;
+    padding: 0;
+  }
+  
+  .logout-button i {
+    margin-right: 0;
+  }
+} 

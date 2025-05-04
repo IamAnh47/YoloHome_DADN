@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, createContext } from 'react';
 import { 
   BrowserRouter as Router, 
   Routes, 
   Route, 
   Navigate,
-  createRoutesFromChildren,
-  createBrowserRouter,
-  RouterProvider 
+  useLocation,
+  useNavigate
 } from 'react-router-dom';
 import Login from './components/Login/Login';
 import Dashboard from './components/Dashboard/Dashboard';
@@ -18,33 +17,24 @@ import Header from './components/common/Header';
 import Sidebar from './components/common/Sidebar';
 import Footer from './components/common/Footer';
 
-// Create router with future flags to remove deprecation warnings
-const router = createBrowserRouter(
-  createRoutesFromChildren(
-    <Route>
-      <Route path="/login" element={<LoginWrapper />} />
-      <Route path="/*" element={<LayoutWrapper />} />
-    </Route>
-  ),
-  {
-    future: {
-      v7_startTransition: true,
-      v7_relativeSplatPath: true
-    }
-  }
-);
+// Create authentication context
+export const AuthContext = createContext(null);
 
-// Layout wrapper component
-function LayoutWrapper() {
+function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
     // Check if token exists in localStorage
     const token = localStorage.getItem('token');
-    if (token) {
-      setIsAuthenticated(true);
-    }
+    setIsAuthenticated(!!token);
+    setIsLoading(false);
   }, []);
+  
+  const handleLogin = (token) => {
+    localStorage.setItem('token', token);
+    setIsAuthenticated(true);
+  };
   
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -52,9 +42,59 @@ function LayoutWrapper() {
     setIsAuthenticated(false);
   };
   
-  if (!isAuthenticated) {
+  if (isLoading) {
+    return <div className="loading">Loading...</div>;
+  }
+
+  return (
+    <AuthContext.Provider value={{ isAuthenticated, handleLogin, handleLogout }}>
+      <Router>
+        <AppContent />
+      </Router>
+    </AuthContext.Provider>
+  );
+}
+
+function AppContent() {
+  const { isAuthenticated } = React.useContext(AuthContext);
+  const location = useLocation();
+  
+  // If not authenticated and not on login page, redirect to login
+  if (!isAuthenticated && location.pathname !== '/login') {
     return <Navigate to="/login" />;
   }
+  
+  // If authenticated and trying to access login page, redirect to dashboard
+  if (isAuthenticated && location.pathname === '/login') {
+    return <Navigate to="/dashboard" />;
+  }
+  
+  return (
+    <div className="app">
+      {isAuthenticated ? (
+        <AuthenticatedLayout />
+      ) : (
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="*" element={<Navigate to="/login" />} />
+        </Routes>
+      )}
+    </div>
+  );
+}
+
+function LoginPage() {
+  const { handleLogin } = React.useContext(AuthContext);
+  
+  return (
+    <div className="login-container-wrapper">
+      <Login onLogin={handleLogin} />
+    </div>
+  );
+}
+
+function AuthenticatedLayout() {
+  const { handleLogout } = React.useContext(AuthContext);
   
   return (
     <div className="app-container">
@@ -69,39 +109,13 @@ function LayoutWrapper() {
             <Route path="/sensors" element={<SensorsPage />} />
             <Route path="/alerts" element={<Alerts />} />
             <Route path="/alert-config" element={<AlertConfig />} />
+            <Route path="*" element={<Navigate to="/dashboard" />} />
           </Routes>
         </main>
       </div>
       <Footer />
     </div>
   );
-}
-
-// Login wrapper component
-function LoginWrapper({ onLogin }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsAuthenticated(true);
-    }
-  }, []);
-  
-  const handleLogin = (token) => {
-    localStorage.setItem('token', token);
-    setIsAuthenticated(true);
-  };
-  
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" />;
-  }
-  
-  return <Login onLogin={handleLogin} />;
-}
-
-function App() {
-  return <RouterProvider router={router} />;
 }
 
 export default App;
