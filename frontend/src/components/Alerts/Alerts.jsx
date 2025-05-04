@@ -14,7 +14,7 @@ const Alerts = () => {
   useEffect(() => {
     loadAlerts();
     // Set up a refresh interval (every 30 seconds)
-    const interval = setInterval(loadAlerts, 30000);
+    const interval = setInterval(loadAlerts, 5000);
     
     // Clean up interval on unmount
     return () => clearInterval(interval);

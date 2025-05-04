@@ -11,8 +11,8 @@ class SensorController {
   // Cache TTL values in milliseconds
   static cacheTTL = {
     readings: 5000,  // 5 seconds for current readings
-    history: 60000,  // 1 minute for history data
-    alerts: 30000    // 30 seconds for alerts
+    history: 6000,  // 1 minute for history data
+    alerts: 6000    // 30 seconds for alerts
   };
   
   /**

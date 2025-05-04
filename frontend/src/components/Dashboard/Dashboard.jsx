@@ -57,7 +57,7 @@ const Dashboard = () => {
     loadDashboardData();
     
     // Thiết lập cập nhật định kỳ
-    const interval = setInterval(loadDashboardData, 30000);
+    const interval = setInterval(loadDashboardData, 5000);
     
     // Dọn dẹp khi component unmount
     return () => clearInterval(interval);

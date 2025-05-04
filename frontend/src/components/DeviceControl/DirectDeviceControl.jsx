@@ -28,7 +28,7 @@ const DirectDeviceControl = () => {
     loadDeviceStatus();
     
     // Cập nhật trạng thái thiết bị mỗi 10 giây
-    const interval = setInterval(loadDeviceStatus, 10000);
+    const interval = setInterval(loadDeviceStatus, 5000);
     
     return () => clearInterval(interval);
   }, []);

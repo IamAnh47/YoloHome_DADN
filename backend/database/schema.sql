@@ -181,24 +181,24 @@ INSERT INTO control (user_id, device_id) VALUES
 (1, 1), (1, 2);
 
 -- Thêm dữ liệu mẫu cho sensor_data
-INSERT INTO sensor_data (sensor_id, svalue, recorded_time) VALUES
--- Dữ liệu nhiệt độ
-(1, 25.5, NOW() - INTERVAL '1 hour'),
-(1, 26.2, NOW() - INTERVAL '45 minutes'),
-(1, 26.8, NOW() - INTERVAL '30 minutes'),
-(1, 27.1, NOW() - INTERVAL '15 minutes'),
-(1, 27.5, NOW()),
+-- INSERT INTO sensor_data (sensor_id, svalue, recorded_time) VALUES
+-- -- Dữ liệu nhiệt độ
+-- (1, 25.5, NOW() - INTERVAL '1 hour'),
+-- (1, 26.2, NOW() - INTERVAL '45 minutes'),
+-- (1, 26.8, NOW() - INTERVAL '30 minutes'),
+-- (1, 27.1, NOW() - INTERVAL '15 minutes'),
+-- (1, 27.5, NOW()),
 
--- Dữ liệu độ ẩm
-(2, 60.5, NOW() - INTERVAL '1 hour'),
-(2, 61.2, NOW() - INTERVAL '45 minutes'),
-(2, 62.8, NOW() - INTERVAL '30 minutes'),
-(2, 63.1, NOW() - INTERVAL '15 minutes'),
-(2, 63.5, NOW()),
+-- -- Dữ liệu độ ẩm
+-- (2, 60.5, NOW() - INTERVAL '1 hour'),
+-- (2, 61.2, NOW() - INTERVAL '45 minutes'),
+-- (2, 62.8, NOW() - INTERVAL '30 minutes'),
+-- (2, 63.1, NOW() - INTERVAL '15 minutes'),
+-- (2, 63.5, NOW()),
 
--- Dữ liệu chuyển động (1 = có chuyển động, 0 = không có)
-(3, 0, NOW() - INTERVAL '1 hour'),
-(3, 1, NOW() - INTERVAL '45 minutes'),
-(3, 0, NOW() - INTERVAL '30 minutes'),
-(3, 1, NOW() - INTERVAL '15 minutes'),
-(3, 0, NOW());
+-- -- Dữ liệu chuyển động (1 = có chuyển động, 0 = không có)
+-- (3, 0, NOW() - INTERVAL '1 hour'),
+-- (3, 1, NOW() - INTERVAL '45 minutes'),
+-- (3, 0, NOW() - INTERVAL '30 minutes'),
+-- (3, 1, NOW() - INTERVAL '15 minutes'),
+-- (3, 0, NOW());

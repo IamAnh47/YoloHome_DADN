@@ -1,3 +1,14 @@
 [2025-05-04T06:03:40.635Z] [INFO] MQTT Service is disabled (MOCK version)
 [2025-05-04T06:03:42.095Z] [WARN] Adafruit IO service is disabled (missing API key)
 [2025-05-04T06:03:42.278Z] [INFO] MQTT connect method called (DISABLED)
+[2025-05-04T08:09:35.143Z] [INFO] MQTT Service is disabled (MOCK version)
+[2025-05-04T08:09:35.474Z] [WARN] Adafruit IO service is disabled (missing API key)
+[2025-05-04T08:09:35.493Z] [INFO] MQTT connect method called (DISABLED)
+[2025-05-04T08:10:37.471Z] [INFO] MQTT publish skipped (DISABLED): Topic: yolohome/devices/2/control
+[2025-05-04T08:10:38.110Z] [INFO] MQTT publish skipped (DISABLED): Topic: yolohome/devices/2/control
+[2025-05-04T15:36:44.044Z] [INFO] MQTT Service is disabled (MOCK version)
+[2025-05-04T15:36:44.406Z] [WARN] Adafruit IO service is disabled (missing API key)
+[2025-05-04T15:36:44.435Z] [INFO] MQTT connect method called (DISABLED)
+[2025-05-04T16:30:42.724Z] [INFO] MQTT Service is disabled (MOCK version)
+[2025-05-04T16:30:42.948Z] [WARN] Adafruit IO service is disabled (missing API key)
+[2025-05-04T16:30:42.970Z] [INFO] MQTT connect method called (DISABLED)
