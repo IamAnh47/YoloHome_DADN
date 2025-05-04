@@ -1,33 +1,17 @@
 const pool = require('../clients/db');
-const useSqlite = process.env.USE_SQLITE === 'true';
 
 const createSensorDataTable = async () => {
   try {
-    let query;
-    
-    if (useSqlite) {
-      // SQLite version
-      query = `
-        CREATE TABLE IF NOT EXISTS sensor_data (
-          data_id INTEGER PRIMARY KEY AUTOINCREMENT,
-          sensor_id INTEGER NOT NULL,
-          svalue REAL NOT NULL,
-          recorded_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (sensor_id) REFERENCES sensor(sensor_id) ON DELETE CASCADE
-        );
-      `;
-    } else {
-      // PostgreSQL version
-      query = `
-        CREATE TABLE IF NOT EXISTS sensor_data (
-          data_id SERIAL PRIMARY KEY,
-          sensor_id INT NOT NULL,
-          svalue FLOAT NOT NULL,
-          recorded_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (sensor_id) REFERENCES sensor(sensor_id) ON DELETE CASCADE
-        );
-      `;
-    }
+    // PostgreSQL version
+    const query = `
+      CREATE TABLE IF NOT EXISTS sensor_data (
+        data_id SERIAL PRIMARY KEY,
+        sensor_id INT NOT NULL,
+        svalue FLOAT NOT NULL,
+        recorded_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (sensor_id) REFERENCES sensor(sensor_id) ON DELETE CASCADE
+      );
+    `;
     
     await pool.query(query);
     console.log('Sensor data table initialized successfully');
@@ -64,27 +48,14 @@ const getSensorDataById = async (id) => {
 
 const getSensorDataWithinRange = async (range) => {
   try {
-    let query;
-    
-    if (useSqlite) {
-      // SQLite version using datetime function
-      query = `
-        SELECT *
-        FROM sensor_data
-        WHERE recorded_time BETWEEN datetime('now', '-${range.timeEnd} hours')
-        AND datetime('now', '-${range.timeStart} hours')
-        ORDER BY recorded_time DESC;
-      `;
-    } else {
-      // PostgreSQL version using INTERVAL syntax
-      query = `
-        SELECT *
-        FROM sensor_data
-        WHERE recorded_time BETWEEN NOW() - INTERVAL '${range.timeEnd} hours'
-        AND NOW() - INTERVAL '${range.timeStart} hours'
-        ORDER BY recorded_time DESC;
-      `;
-    }
+    // PostgreSQL version using INTERVAL syntax
+    const query = `
+      SELECT *
+      FROM sensor_data
+      WHERE recorded_time BETWEEN NOW() - INTERVAL '${range.timeEnd} hours'
+      AND NOW() - INTERVAL '${range.timeStart} hours'
+      ORDER BY recorded_time DESC;
+    `;
     
     const result = await pool.query(query);
     return result.rows;
@@ -123,10 +94,10 @@ const deleteSensorData = async (id) => {
 const getSensorByType = async (sensorType) => {
   // Mapping feed names to sensor types
   const typeMapping = {
-    'temperature': 'Temperature',
-    'humidity': 'Humidity',
-    'light': 'Light',
-    'fan': 'Fan',
+    'temperature': 'temperature',
+    'humidity': 'humidity',
+    'light': 'light',
+    'fan': 'fan',
     // Add fan and light control mappings
   };
 

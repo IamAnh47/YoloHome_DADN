@@ -1,17 +1,16 @@
-// const { Pool } = require('pg');
+const { Pool } = require('pg');
 const dotenv = require('dotenv');
-const sqlite3 = require('sqlite3').verbose();
-const { open } = require('sqlite');
+// const sqlite3 = require('sqlite3').verbose();
+// const { open } = require('sqlite');
 
 // Load env vars
 dotenv.config({ path: './config/.env' });
 
 // Log database connection parameters
-console.log('Using SQLite database');
-console.log('- Database path:', process.env.SQLITE_PATH || './database.sqlite');
+console.log('Using PostgreSQL database');
+console.log('- Database host:', process.env.DB_HOST || 'localhost');
+console.log('- Database name:', process.env.DB_NAME || 'smarthome');
 
-// Comment out PostgreSQL connection code
-/*
 // Create connection pool
 const pool = new Pool({
   user: process.env.DB_USER,
@@ -45,8 +44,8 @@ pool.query('SELECT NOW()', (err, res) => {
     });
   }
 });
-*/
 
+/* Comment out SQLite connection code
 // Create SQLite connection
 let db;
 
@@ -78,25 +77,13 @@ const initDb = async () => {
 
 // Initialize database connection
 initDb();
+*/
 
-// Modified query function to handle both PostgreSQL and SQLite syntax
+// Query function for PostgreSQL
 const query = async (text, params = []) => {
-  if (!db) await initDb();
-  
   try {
-    // Convert PostgreSQL query placeholders ($1, $2) to SQLite placeholders (?)
-    const sqliteText = text.replace(/\$\d+/g, '?');
-    
-    // Determine if it's a SELECT query or other type
-    if (sqliteText.trim().toUpperCase().startsWith('SELECT')) {
-      // For SELECT queries that might return multiple rows
-      const rows = await db.all(sqliteText, params);
-      return { rows };
-    } else {
-      // For INSERT, UPDATE, DELETE queries
-      const result = await db.run(sqliteText, params);
-      return { rows: [result] };
-    }
+    const result = await pool.query(text, params);
+    return result;
   } catch (err) {
     console.error('Error executing query:', err);
     throw err;
@@ -106,7 +93,7 @@ const query = async (text, params = []) => {
 module.exports = {
   query,
   getClient: async () => {
-    if (!db) await initDb();
-    return db;
+    const client = await pool.connect();
+    return client;
   }
 };
