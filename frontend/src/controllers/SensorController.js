@@ -191,6 +191,11 @@ class SensorController {
           this.updateTimestamp('alerts');
           
           return alertsData;
+        } else {
+          // If API returns invalid format or empty data, set empty array
+          this.cache.alerts = [];
+          this.updateTimestamp('alerts');
+          return [];
         }
         
         console.warn('API response structure:', JSON.stringify(response.data));
@@ -201,7 +206,10 @@ class SensorController {
       }
     } catch (error) {
       console.error('Error fetching alerts:', error);
-      throw error;
+      // Return empty array instead of throwing error
+      this.cache.alerts = [];
+      this.updateTimestamp('alerts');
+      return [];
     }
   }
   
@@ -216,22 +224,28 @@ class SensorController {
     // Return from appropriate cache based on data type
     if (dataType === 'history' && subType) {
       if (!this.cache.history[subType] || !this.cache.history[subType][timeRange]) {
-        throw new Error(`No cached data for ${subType} ${timeRange}`);
+        console.log(`No cached data for ${subType} ${timeRange}, returning empty array`);
+        return [];
       }
       return this.cache.history[subType][timeRange];
     } else if (dataType === 'readings') {
       if (!this.cache.readings) {
-        throw new Error('No cached readings data');
+        return {
+          temperature: '0.0',
+          humidity: '0.0',
+          motion: false
+        };
       }
       return this.cache.readings;
     } else if (dataType === 'alerts') {
       if (!this.cache.alerts || this.cache.alerts.length === 0) {
-        throw new Error('No cached alerts data');
+        return [];
       }
       return this.cache.alerts;
     }
     
-    throw new Error(`Unknown cache type: ${dataType}`);
+    console.log(`Unknown cache type: ${dataType}, returning empty array`);
+    return [];
   }
 }
 
