@@ -77,10 +77,10 @@ const updateDeviceStatusFromFeed = async (deviceType, status) => {
   }
 };
 
-// Set up periodic sync from Adafruit feeds to database (every 10 seconds)
+// Set up periodic sync from Adafruit feeds to database (every 5 seconds instead of 10)
 setInterval(async () => {
   await adafruitService.syncDeviceStatesFromFeed(updateDeviceStatusFromFeed);
-}, 10000);
+}, 5000);
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {

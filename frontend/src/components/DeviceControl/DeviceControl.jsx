@@ -6,28 +6,44 @@ const DeviceControl = () => {
   const [devices, setDevices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isToggling, setIsToggling] = useState({});
   
   useEffect(() => {
     loadDevices();
     
-    // Set up polling to refresh device states from the feed
-    const interval = setInterval(loadDevices, 5000);
+    // Set up polling to refresh device states from the feed (every 3 seconds instead of 5)
+    const interval = setInterval(loadDevices, 3000);
     
     return () => clearInterval(interval);
   }, []);
   
   const loadDevices = async () => {
-    setIsLoading(true);
-    setError(null);
+    // Don't set loading state during refresh to avoid UI flickering
+    const initialLoad = isLoading;
+    if (initialLoad) setIsLoading(true);
     
     try {
       const result = await DeviceController.getAllDevices();
-      setDevices(result);
+      
+      // Update devices without affecting ones that are currently being toggled
+      setDevices(prevDevices => {
+        return result.map(newDevice => {
+          // If device is being toggled, preserve its current UI state
+          const isDeviceToggling = isToggling[newDevice.id];
+          if (isDeviceToggling) {
+            const existingDevice = prevDevices.find(d => d.id === newDevice.id);
+            if (existingDevice) {
+              return existingDevice;
+            }
+          }
+          return newDevice;
+        });
+      });
     } catch (err) {
       setError('Failed to load devices. Please try again.');
       console.error('Error loading devices:', err);
     } finally {
-      setIsLoading(false);
+      if (initialLoad) setIsLoading(false);
     }
   };
   
@@ -39,6 +55,9 @@ const DeviceControl = () => {
       const device = devices[deviceIndex];
       const isCurrentlyActive = device.status === 'active';
       const action = isCurrentlyActive ? 'off' : 'on';
+      
+      // Mark this device as toggling to preserve its state
+      setIsToggling(prev => ({ ...prev, [deviceId]: true }));
       
       // Update UI immediately for better user experience
       const updatedDevices = [...devices];
@@ -63,14 +82,41 @@ const DeviceControl = () => {
       
       console.log(`Device ${deviceType} ${action} result:`, result);
       
-      // Refresh the device list to get updated states from feeds
-      setTimeout(loadDevices, 1000);
+      // Update the UI immediately with the response data
+      if (result && result.data) {
+        const serverResponse = result.data;
+        
+        // For integrated response format from backend
+        if (serverResponse.device_id && deviceId === serverResponse.device_id) {
+          // Update with the actual server state
+          setDevices(currentDevices => {
+            const deviceIndex = currentDevices.findIndex(d => d.id === deviceId);
+            if (deviceIndex !== -1) {
+              const updatedDevices = [...currentDevices];
+              updatedDevices[deviceIndex] = {
+                ...currentDevices[deviceIndex],
+                status: serverResponse.status || currentDevices[deviceIndex].status
+              };
+              return updatedDevices;
+            }
+            return currentDevices;
+          });
+        }
+      }
+      
+      // Clear the toggling state after a short delay
+      setTimeout(() => {
+        setIsToggling(prev => ({ ...prev, [deviceId]: false }));
+        // Refresh all devices to ensure consistency
+        loadDevices();
+      }, 1000);
       
     } catch (err) {
       setError(`Failed to control ${deviceType}. Please try again.`);
       console.error(`Error controlling ${deviceType}:`, err);
       
-      // Refresh devices to reflect actual state
+      // Clear toggling state and refresh devices to reflect actual state
+      setIsToggling(prev => ({ ...prev, [deviceId]: false }));
       loadDevices();
     }
   };
@@ -119,9 +165,15 @@ const DeviceControl = () => {
                       type="checkbox"
                       checked={device.status === 'active'}
                       onChange={() => handleToggleDevice(device.id, device.type)}
+                      disabled={isToggling[device.id]}
                     />
                     <span className="toggle-slider"></span>
                   </label>
+                  {isToggling[device.id] && (
+                    <span className="toggle-indicator">
+                      <i className="fas fa-sync fa-spin"></i>
+                    </span>
+                  )}
                 </div>
               </div>
             ))

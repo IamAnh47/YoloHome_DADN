@@ -285,6 +285,15 @@ exports.controlFan = async (req, res, next) => {
       });
     }
     
+    // Find fan device first to include in response
+    const fanDevice = await DeviceModel.findDeviceByType('fan');
+    if (!fanDevice) {
+      return res.status(404).json({
+        success: false,
+        message: 'Fan device not found'
+      });
+    }
+    
     // Use the Adafruit Service to control the fan
     let result;
     if (action === 'on') {
@@ -301,20 +310,24 @@ exports.controlFan = async (req, res, next) => {
       });
     }
     
-    // Update the device status in the database based on feed value
-    const fanDevice = await DeviceModel.findDeviceByType('fan');
-    if (fanDevice) {
-      // Convert action to device status
-      const status = action === 'on' ? 'active' : 'inactive';
-      // Update the device in the database
-      await DeviceModel.updateDevice(fanDevice.device_id, { status });
-    }
+    // Convert action to device status
+    const status = action === 'on' ? 'active' : 'inactive';
     
-    // Return success response
+    // Update the device in the database
+    const updatedDevice = await DeviceModel.updateDevice(fanDevice.device_id, { status });
+    
+    // Return success response with device data
     res.status(200).json({
       success: true,
       message: `Fan turned ${action} successfully`,
-      data: result
+      data: {
+        device_id: fanDevice.device_id,
+        name: fanDevice.device_name,
+        type: fanDevice.device_type,
+        location: fanDevice.dlocation,
+        status: status,
+        lastUpdated: new Date().toISOString()
+      }
     });
   } catch (error) {
     next(error);
@@ -336,6 +349,15 @@ exports.controlLight = async (req, res, next) => {
       });
     }
     
+    // Find light device first to include in response
+    const lightDevice = await DeviceModel.findDeviceByType('light');
+    if (!lightDevice) {
+      return res.status(404).json({
+        success: false,
+        message: 'Light device not found'
+      });
+    }
+    
     // Use the Adafruit Service to control the light
     let result;
     if (action === 'on') {
@@ -352,20 +374,24 @@ exports.controlLight = async (req, res, next) => {
       });
     }
     
-    // Update the device status in the database based on feed value
-    const lightDevice = await DeviceModel.findDeviceByType('light');
-    if (lightDevice) {
-      // Convert action to device status
-      const status = action === 'on' ? 'active' : 'inactive';
-      // Update the device in the database
-      await DeviceModel.updateDevice(lightDevice.device_id, { status });
-    }
+    // Convert action to device status
+    const status = action === 'on' ? 'active' : 'inactive';
     
-    // Return success response
+    // Update the device in the database
+    const updatedDevice = await DeviceModel.updateDevice(lightDevice.device_id, { status });
+    
+    // Return success response with device data
     res.status(200).json({
       success: true,
       message: `Light turned ${action} successfully`,
-      data: result
+      data: {
+        device_id: lightDevice.device_id,
+        name: lightDevice.device_name,
+        type: lightDevice.device_type,
+        location: lightDevice.dlocation,
+        status: status,
+        lastUpdated: new Date().toISOString()
+      }
     });
   } catch (error) {
     next(error);
