@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import DeviceController from '../../controllers/DeviceController';
-import DirectDeviceControl from './DirectDeviceControl';
 import './DeviceControl.css';
 
 const DeviceControl = () => {
@@ -109,11 +108,6 @@ const DeviceControl = () => {
             <div className="no-devices">No devices found.</div>
           )}
         </div>
-      </div>
-      
-      {/* Direct device control panel */}
-      <div className="direct-control-section">
-        <DirectDeviceControl />
       </div>
     </div>
   );
