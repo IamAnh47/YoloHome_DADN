@@ -139,10 +139,10 @@ class SensorController {
           
           // Store data in cache with the key that includes timeRange
           const cacheKey = `${sensorType}_${timeRange}`;
-          if (!this.cache.history[sensorType]) {
-            this.cache.history[sensorType] = {};
+          if (!this.cache.history[cacheKey]) {
+            this.cache.history[cacheKey] = [];
           }
-          this.cache.history[sensorType][timeRange] = formattedData;
+          this.cache.history[cacheKey] = formattedData;
           
           // Update timestamp for this history subtype
           this.updateTimestamp('history', sensorType);
@@ -223,11 +223,12 @@ class SensorController {
   static getFromCache(dataType, subType = null, timeRange = 'day') {
     // Return from appropriate cache based on data type
     if (dataType === 'history' && subType) {
-      if (!this.cache.history[subType] || !this.cache.history[subType][timeRange]) {
+      const cacheKey = `${subType}_${timeRange}`;
+      if (!this.cache.history[cacheKey]) {
         console.log(`No cached data for ${subType} ${timeRange}, returning empty array`);
         return [];
       }
-      return this.cache.history[subType][timeRange];
+      return this.cache.history[cacheKey];
     } else if (dataType === 'readings') {
       if (!this.cache.readings) {
         return {

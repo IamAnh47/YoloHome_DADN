@@ -13,10 +13,104 @@ A smart home automation system that connects to IoT devices for monitoring and c
 
 ## System Architecture
 
-- **Backend**: Express.js REST API server
-- **Frontend**: React.js web application
-- **Database**: PostgreSQL (production) / SQLite (development/testing)
-- **IoT Communication**: MQTT protocol via Adafruit IO
+```mermaid
+graph TB
+    classDef frontend fill:#f9d5e5,stroke:#333,stroke-width:1px
+    classDef backend fill:#eeeeee,stroke:#333,stroke-width:1px
+    classDef database fill:#b5ead7,stroke:#333,stroke-width:1px
+    classDef external fill:#c7ceea,stroke:#333,stroke-width:1px
+    classDef cache fill:#ffdac1,stroke:#333,stroke-width:1px
+
+    %% External Services
+    AdafruitIO[Adafruit IO<br/>MQTT Broker]:::external
+    ESP32[ESP32 Devices]:::external
+
+    %% Frontend Components
+    subgraph Frontend["Frontend (React)"]
+        direction TB
+        UI[User Interface]:::frontend
+        Components[React Components]:::frontend
+        FController[Controllers<br/>- SensorController<br/>- DeviceController]:::frontend
+        FService[Services<br/>- apiService<br/>- deviceService<br/>- authService]:::frontend
+        FCache[Client Cache<br/>- Readings<br/>- History<br/>- Alerts]:::cache
+    end
+
+    %% Backend Components
+    subgraph Backend["Backend (Node.js)"]
+        direction TB
+        API[RESTful API<br/>Express.js]:::backend
+        BController[Controllers<br/>- sensorController<br/>- deviceController<br/>- alertController]:::backend
+        BService[Services<br/>- adafruitService<br/>- mqttService<br/>- predictionService]:::backend
+        Models[Data Models]:::backend
+    end
+
+    %% Database
+    subgraph DB["Database"]
+        direction TB
+        SQLite[(SQLite Database)]:::database
+        Tables[Tables<br/>- Sensors<br/>- Devices<br/>- Alerts<br/>- Users]:::database
+    end
+
+    %% Data Flow
+    UI --> Components
+    Components --> FController
+    FController <--> FCache
+    FController --> FService
+
+    FService <--> API
+    API --> BController
+    BController <--> BService
+    BController <--> Models
+    Models <--> SQLite
+
+    BService <--> AdafruitIO
+    AdafruitIO <--> ESP32
+
+    %% Connections explanations
+    ESP32 -. "Collects sensor data" .-> AdafruitIO
+    ESP32 -. "Receives commands" .-> AdafruitIO
+    BService -. "Subscribes to feeds" .-> AdafruitIO
+    BService -. "Publishes commands" .-> AdafruitIO
+    FCache -. "TTL: 5s" .-> FController
+    SQLite -. "Stores history" .-> Tables
+</graph>
+
+### Data Flow
+
+1. **Sensor Data Collection**:
+   - ESP32 devices read physical sensors (temperature, humidity, motion)
+   - Data is published to Adafruit IO MQTT feeds
+   - Backend's MQTT service subscribes to these feeds
+   - Data is processed and stored in the SQLite database
+
+2. **Device Control**:
+   - User interacts with the UI to control devices (lights, fans, etc.)
+   - Frontend controllers process these requests through the API service
+   - Backend controllers receive commands via the REST API
+   - Commands are published to Adafruit IO feeds
+   - ESP32 devices subscribe to these feeds and control physical devices
+   - State changes are synchronized back to the database
+
+3. **Data Visualization**:
+   - Frontend requests sensor data via API service
+   - Backend retrieves data from the database
+   - SensorController manages data caching (TTL: 5 seconds)
+   - UI components display data with 5-second auto-refresh
+   - Charts show 30 evenly spaced historical data points
+
+4. **Alert System**:
+   - Backend monitors sensor values against thresholds
+   - Prediction service analyzes patterns for anomaly detection
+   - Alerts are generated and stored in the database
+   - Frontend retrieves and displays alerts with appropriate visuals
+
+### Smart Features
+
+- **Efficient Caching**: Frontend maintains TTL-based cache for different data types
+- **Real-time Updates**: 5-second refresh intervals keep UI in sync with physical world
+- **Smart Analysis**: Prediction service identifies unusual patterns in sensor data
+- **Responsive Design**: UI adapts to different device sizes with modern styling
+- **Fault Tolerance**: Graceful error handling and fallbacks ensure system reliability
 
 ## Database Configuration
 
