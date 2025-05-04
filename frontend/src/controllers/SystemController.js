@@ -22,9 +22,9 @@ class SystemController {
   }
 
   /**
-   * Lấy trạng thái toàn bộ hệ thống (thiết bị và cảm biến)
+   * Get system status (devices and sensors)
    * @param {boolean} [forceFresh=false] Force refresh data from server
-   * @returns {Promise<Object>} Dữ liệu tất cả thiết bị và cảm biến
+   * @returns {Promise<Object>} All devices and sensor data
    */
   static async getSystemStatus(forceFresh = false) {
     try {
@@ -46,64 +46,28 @@ class SystemController {
         throw new Error('Invalid data format from API');
       } else {
         console.log('Using cached system status data');
+        return this.getFromCache();
       }
-      
-      // Fallback to sample data when disconnected
-      return {
-        devices: {
-          fan: {
-            status: false,
-            device_id: 2,
-            name: 'Smart Fan',
-            location: 'Bedroom'
-          },
-          light: {
-            status: false,
-            device_id: 1,
-            name: 'Smart Light',
-            location: 'Living Room'
-          }
-        },
-        sensors: {
-          temperature: '25.0',
-          humidity: '60.0',
-          motion: false
-        },
-        timestamp: new Date().toISOString()
-      };
     } catch (error) {
       console.error('Error fetching system status:', error);
-      
-      // Trả về dữ liệu mẫu khi không kết nối được API
-      return {
-        devices: {
-          fan: {
-            status: false,
-            device_id: 2,
-            name: 'Smart Fan',
-            location: 'Bedroom'
-          },
-          light: {
-            status: false,
-            device_id: 1,
-            name: 'Smart Light',
-            location: 'Living Room'
-          }
-        },
-        sensors: {
-          temperature: '25.0',
-          humidity: '60.0',
-          motion: false
-        },
-        timestamp: new Date().toISOString()
-      };
+      throw error;
     }
   }
   
   /**
-   * Điều khiển quạt
-   * @param {boolean} turnOn - true để bật, false để tắt
-   * @returns {Promise<Object>} Kết quả điều khiển
+   * Get data from cache (placeholder for future implementation)
+   * @returns {Object} Cached data
+   */
+  static getFromCache() {
+    // This would be implemented with actual cache storage
+    // For now, we'll just throw an error to force fresh data fetch
+    throw new Error('Cache data unavailable');
+  }
+  
+  /**
+   * Control the fan
+   * @param {boolean} turnOn - true to turn on, false to turn off
+   * @returns {Promise<Object>} Control result
    */
   static async controlFan(turnOn) {
     try {
@@ -121,9 +85,9 @@ class SystemController {
   }
   
   /**
-   * Điều khiển đèn
-   * @param {boolean} turnOn - true để bật, false để tắt
-   * @returns {Promise<Object>} Kết quả điều khiển
+   * Control the light
+   * @param {boolean} turnOn - true to turn on, false to turn off
+   * @returns {Promise<Object>} Control result
    */
   static async controlLight(turnOn) {
     try {

@@ -25,16 +25,21 @@ class DeviceController {
   
   static async getDeviceById(id) {
     try {
-      // In a real application, we would fetch data from the API
-      // For now, let's find the device from our mock data
-      const devices = await this.getAllDevices();
-      const device = devices.find(d => d.id === id);
+      const response = await apiService.get(`/devices/${id}`);
       
-      if (!device) {
-        throw new Error('Device not found');
+      if (response.data && response.data.data) {
+        const device = response.data.data;
+        return new DeviceModel({
+          id: device.device_id,
+          name: device.device_name,
+          type: device.device_type,
+          location: device.dlocation,
+          status: device.status,
+          lastUpdated: device.created_time || new Date().toISOString()
+        });
       }
       
-      return device;
+      throw new Error('Device not found');
     } catch (error) {
       console.error(`Error fetching device with id ${id}:`, error);
       throw error;
@@ -72,20 +77,10 @@ class DeviceController {
         };
       }
       
-      // Fallback if response format is unexpected
-      return {
-        total: 0,
-        online: 0,
-        offline: 0
-      };
+      throw new Error('Invalid device stats format received from API');
     } catch (error) {
       console.error('Error fetching device stats:', error);
-      // Fallback values
-      return {
-        total: 0,
-        online: 0,
-        offline: 0
-      };
+      throw error;
     }
   }
   

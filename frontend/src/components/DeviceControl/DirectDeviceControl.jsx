@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import SystemController from '../../controllers/SystemController';
+import DeviceController from '../../controllers/DeviceController';
 import './DirectDeviceControl.css';
 
 const DirectDeviceControl = () => {
@@ -7,33 +8,36 @@ const DirectDeviceControl = () => {
     fan: { status: false },
     light: { status: false }
   });
+  const [registeredDevices, setRegisteredDevices] = useState([]);
   const [feedback, setFeedback] = useState({ message: '', type: '' });
-  const [loading, setLoading] = useState({
-    fan: false,
-    light: false
-  });
+  const [loading, setLoading] = useState(false);
 
-  // Lấy trạng thái thiết bị khi component được tải
+  // Load device status and registered devices when component mounts
   useEffect(() => {
-    const loadDeviceStatus = async () => {
+    const loadData = async () => {
       try {
+        // Load system status
         const systemStatus = await SystemController.getSystemStatus();
         setDeviceStatus(systemStatus.devices);
+        
+        // Load registered devices
+        const devices = await DeviceController.getAllDevices();
+        setRegisteredDevices(devices);
       } catch (error) {
-        console.error('Error loading device status:', error);
-        showFeedback('Failed to load device status', 'error');
+        console.error('Error loading data:', error);
+        showFeedback('Failed to load device information', 'error');
       }
     };
     
-    loadDeviceStatus();
+    loadData();
     
-    // Cập nhật trạng thái thiết bị mỗi 10 giây
-    const interval = setInterval(loadDeviceStatus, 5000);
+    // Update device status every 5 seconds
+    const interval = setInterval(loadData, 5000);
     
     return () => clearInterval(interval);
   }, []);
 
-  // Hiển thị thông báo và tự động ẩn sau 3 giây
+  // Show feedback message and auto-hide after 3 seconds
   const showFeedback = (message, type = 'success') => {
     setFeedback({ message, type });
     setTimeout(() => {
@@ -41,52 +45,43 @@ const DirectDeviceControl = () => {
     }, 3000);
   };
 
-  // Điều khiển quạt
-  const handleFanControl = async (action) => {
-    setLoading(prev => ({ ...prev, fan: true }));
+  // Toggle device status
+  const handleToggleDevice = async (deviceId, deviceType, currentStatus) => {
+    setLoading(true);
     try {
-      const turnOn = action === 'on';
-      await SystemController.controlFan(turnOn);
+      const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
       
-      // Cập nhật trạng thái ngay lập tức trên UI
-      setDeviceStatus(prev => ({
-        ...prev,
-        fan: {
-          ...prev.fan,
-          status: turnOn
-        }
-      }));
+      // Update device status through API
+      await DeviceController.updateDeviceStatus(deviceId, newStatus);
       
-      showFeedback(`Fan turned ${action} successfully`);
+      // Update the device in the local state
+      setRegisteredDevices(prevDevices => 
+        prevDevices.map(device => 
+          device.id === deviceId 
+            ? { ...device, status: newStatus } 
+            : device
+        )
+      );
+      
+      showFeedback(`${deviceType} ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully`);
     } catch (error) {
-      showFeedback(`Failed to control fan: ${error.message}`, 'error');
+      showFeedback(`Failed to control device: ${error.message}`, 'error');
     } finally {
-      setLoading(prev => ({ ...prev, fan: false }));
+      setLoading(false);
     }
   };
 
-  // Điều khiển đèn
-  const handleLightControl = async (action) => {
-    setLoading(prev => ({ ...prev, light: true }));
-    try {
-      const turnOn = action === 'on';
-      await SystemController.controlLight(turnOn);
-      
-      // Cập nhật trạng thái ngay lập tức trên UI
-      setDeviceStatus(prev => ({
-        ...prev,
-        light: {
-          ...prev.light, 
-          status: turnOn
-        }
-      }));
-      
-      showFeedback(`Light turned ${action} successfully`);
-    } catch (error) {
-      showFeedback(`Failed to control light: ${error.message}`, 'error');
-    } finally {
-      setLoading(prev => ({ ...prev, light: false }));
-    }
+  // Get icon based on device type
+  const getDeviceIcon = (type) => {
+    const icons = {
+      fan: 'fas fa-fan',
+      light: 'fas fa-lightbulb',
+      lock: 'fas fa-lock',
+      alarm: 'fas fa-bell',
+      default: 'fas fa-plug'
+    };
+    
+    return icons[type] || icons.default;
   };
 
   return (
@@ -99,64 +94,42 @@ const DirectDeviceControl = () => {
         </div>
       )}
       
-      <div className="control-cards">
-        {/* Fan Control Card */}
-        <div className="control-card">
-          <div className={`device-icon ${deviceStatus.fan.status ? 'active' : ''}`}>
-            <i className="fas fa-fan"></i>
-          </div>
-          <h3>Fan Control</h3>
-          <div className="status-indicator">
-            Status: <span className={deviceStatus.fan.status ? 'status-on' : 'status-off'}>
-              {deviceStatus.fan.status ? 'ON' : 'OFF'}
-            </span>
-          </div>
-          <div className="control-buttons">
-            <button 
-              className={`control-button on ${deviceStatus.fan.status ? 'active' : ''}`}
-              onClick={() => handleFanControl('on')}
-              disabled={loading.fan || deviceStatus.fan.status}
-            >
-              {loading.fan ? 'Processing...' : 'Turn On'}
-            </button>
-            <button 
-              className={`control-button off ${!deviceStatus.fan.status ? 'active' : ''}`}
-              onClick={() => handleFanControl('off')}
-              disabled={loading.fan || !deviceStatus.fan.status}
-            >
-              {loading.fan ? 'Processing...' : 'Turn Off'}
-            </button>
-          </div>
-        </div>
+      <div className="registered-devices-panel">
+        <h3>Registered Devices</h3>
         
-        {/* Light Control Card */}
-        <div className="control-card">
-          <div className={`device-icon ${deviceStatus.light.status ? 'active' : ''}`}>
-            <i className="fas fa-lightbulb"></i>
+        {registeredDevices.length > 0 ? (
+          <div className="devices-grid">
+            {registeredDevices.map(device => (
+              <div key={device.id} className="device-item">
+                <div className={`device-icon ${device.status === 'active' ? 'active' : ''}`}>
+                  <i className={getDeviceIcon(device.type)}></i>
+                </div>
+                <div className="device-details">
+                  <h4>{device.name}</h4>
+                  <div className="device-location">{device.location}</div>
+                  <div className="status-indicator">
+                    <span className={device.status === 'active' ? 'status-on' : 'status-off'}>
+                      {device.status === 'active' ? 'ON' : 'OFF'}
+                    </span>
+                  </div>
+                </div>
+                <div className="device-actions">
+                  <button 
+                    className={`toggle-button ${device.status === 'active' ? 'on' : 'off'}`}
+                    onClick={() => handleToggleDevice(device.id, device.type, device.status)}
+                    disabled={loading}
+                  >
+                    {device.status === 'active' ? 'Turn Off' : 'Turn On'}
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-          <h3>Light Control</h3>
-          <div className="status-indicator">
-            Status: <span className={deviceStatus.light.status ? 'status-on' : 'status-off'}>
-              {deviceStatus.light.status ? 'ON' : 'OFF'}
-            </span>
+        ) : (
+          <div className="no-devices-message">
+            No registered devices found.
           </div>
-          <div className="control-buttons">
-            <button 
-              className={`control-button on ${deviceStatus.light.status ? 'active' : ''}`}
-              onClick={() => handleLightControl('on')}
-              disabled={loading.light || deviceStatus.light.status}
-            >
-              {loading.light ? 'Processing...' : 'Turn On'}
-            </button>
-            <button 
-              className={`control-button off ${!deviceStatus.light.status ? 'active' : ''}`}
-              onClick={() => handleLightControl('off')}
-              disabled={loading.light || !deviceStatus.light.status}
-            >
-              {loading.light ? 'Processing...' : 'Turn Off'}
-            </button>
-          </div>
-        </div>
+        )}
       </div>
       
       <div className="automation-info">
