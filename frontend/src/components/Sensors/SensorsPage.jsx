@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import SensorController from '../../controllers/SensorController';
-import SystemController from '../../controllers/SystemController';
 import SensorChart from '../Dashboard/SensorChart';
 import './SensorsPage.css';
 

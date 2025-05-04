@@ -210,7 +210,7 @@ class SensorModel {
           FROM sensor_data
           WHERE sensor_id = $1
           AND recorded_time >= CURRENT_DATE
-          ORDER BY recorded_time DESC
+          ORDER BY recorded_time ASC
           LIMIT 30
         `;
         

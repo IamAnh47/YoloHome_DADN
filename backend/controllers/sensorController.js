@@ -350,9 +350,16 @@ exports.getSensorHistoryByType = async (req, res, next) => {
     
     // Format the data for UI
     const formattedData = historyData.map(item => {
+      let formattedValue = type === 'motion' ? (item.svalue > 0) : parseFloat(item.svalue);
+      
+      // Ensure numeric value is valid
+      if (isNaN(formattedValue) && type !== 'motion') {
+        formattedValue = 0;
+      }
+      
       return {
         timestamp: timeRange === 'week' ? item.day : item.recorded_time,
-        value: type === 'motion' ? (item.svalue > 0) : parseFloat(item.svalue)
+        value: formattedValue
       };
     });
     

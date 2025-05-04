@@ -85,18 +85,17 @@ const SensorChart = ({ sensorType, title, unit }) => {
     const chartHeight = 150; // pixels
     const range = maxValue - minValue;
     
-    // For day view, order points from oldest to newest to ensure proper timeline display
-    // For week view, the data is already ordered by date
-    let displayData = chartData;
-    if (timeRange === 'day') {
-      displayData = [...chartData].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-    }
+    // The data from the backend is now pre-sorted in chronological order
+    // so we can use it directly without re-sorting
+    const displayData = chartData;
     
     // Calculate even spacing between points
     const step = displayData.length > 1 ? chartWidth / (displayData.length - 1) : 0;
     
     return displayData.map((item, index) => {
+      // Position X evenly along the chart width
       const x = index * step;
+      // Scale Y value to chart height - higher values are higher on the chart
       const y = chartHeight - ((item.value - minValue) / range * chartHeight);
       return { x, y, value: item.value, timestamp: item.timestamp };
     });
@@ -110,12 +109,18 @@ const SensorChart = ({ sensorType, title, unit }) => {
     
     let path = `M ${points[0].x} ${points[0].y}`;
     
+    // Use more natural curves with tension for better visualization
     for (let i = 1; i < points.length; i++) {
-      // Create smooth curve with controlled curve tension
-      const ctrl1x = (points[i-1].x + points[i].x) / 2;
+      // Calculate control points with improved curve tension
+      const xDiff = points[i].x - points[i-1].x;
+      const yDiff = points[i].y - points[i-1].y;
+      const tension = 0.2; // Lower value = smoother curve
+      
+      const ctrl1x = points[i-1].x + xDiff * tension;
       const ctrl1y = points[i-1].y;
-      const ctrl2x = (points[i-1].x + points[i].x) / 2;
+      const ctrl2x = points[i].x - xDiff * tension;
       const ctrl2y = points[i].y;
+      
       path += ` C ${ctrl1x} ${ctrl1y}, ${ctrl2x} ${ctrl2y}, ${points[i].x} ${points[i].y}`;
     }
     
@@ -265,6 +270,16 @@ const SensorChart = ({ sensorType, title, unit }) => {
                 {/* Data points */}
                 {points.map((point, index) => (
                   <g key={index} className="data-point-group">
+                    {/* Larger highlight circle for better visibility */}
+                    <circle 
+                      cx={point.x + "%"} 
+                      cy={point.y} 
+                      r="6" 
+                      fill={colors.main}
+                      opacity="0.2"
+                      className="data-point-highlight"
+                    />
+                    {/* Main data point */}
                     <circle 
                       cx={point.x + "%"} 
                       cy={point.y} 

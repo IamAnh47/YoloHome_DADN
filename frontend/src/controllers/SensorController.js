@@ -111,9 +111,13 @@ class SensorController {
    */
   static async getSensorHistory(sensorType, timeRange = 'day', forceFresh = false) {
     try {
+      const cacheKey = `${sensorType}_${timeRange}`;
+      
       if (!this.isDataFresh('history', sensorType) || forceFresh) {
+        console.log(`Fetching ${sensorType} ${timeRange} history data from API`);
+        
         // Get data from API with the specific timeRange
-        const limit = timeRange === 'day' ? 20 : 7; 
+        const limit = timeRange === 'day' ? 30 : 7; 
         const cacheBuster = `?timeRange=${timeRange}&limit=${limit}&_t=${Date.now()}`;
         const response = await apiService.get(`/sensors/history/${sensorType}${cacheBuster}`);
         
@@ -124,13 +128,19 @@ class SensorController {
           // Additional logging to debug
           console.log(`Received ${sensorType} ${timeRange} data:`, response.data);
           
-          return response.data.data;
+          // Ensure data is properly formatted for charts
+          const formattedData = response.data.data.map(item => ({
+            timestamp: item.timestamp,
+            value: typeof item.value === 'number' ? item.value : parseFloat(item.value || 0)
+          }));
+          
+          return formattedData;
         }
         
         console.warn('API response structure:', JSON.stringify(response.data));
         throw new Error('Invalid data format received from API');
       } else {
-        console.log(`Using cached ${sensorType} history data`);
+        console.log(`Using cached ${sensorType} history data for ${timeRange}`);
         return this.getFromCache('history', sensorType);
       }
     } catch (error) {
