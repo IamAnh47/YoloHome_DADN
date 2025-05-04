@@ -203,7 +203,7 @@ class SensorModel {
   
   static async getSensorHistory(sensorId, limit = 24, timeRange = 'day') {
     try {
-      // For day view: Get the 20 most recent readings for the current day
+      // For day view: Get the 30 most recent readings for the current day
       if (timeRange === 'day') {
         const query = `
           SELECT data_id, sensor_id, svalue, recorded_time
@@ -211,7 +211,7 @@ class SensorModel {
           WHERE sensor_id = $1
           AND recorded_time >= CURRENT_DATE
           ORDER BY recorded_time DESC
-          LIMIT 20
+          LIMIT 30
         `;
         
         const result = await db.query(query, [sensorId]);

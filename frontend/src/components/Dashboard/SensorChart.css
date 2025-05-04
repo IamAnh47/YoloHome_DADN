@@ -1,14 +1,14 @@
 .sensor-chart {
-  background-color: #ffffff;
+  background: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  margin-bottom: 25px;
   transition: all 0.3s ease;
 }
 
 .sensor-chart:hover {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
   transform: translateY(-2px);
 }
 
@@ -16,156 +16,164 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 15px;
 }
 
 .chart-header h3 {
+  font-size: 18px;
+  font-weight: 600;
   margin: 0;
   color: #2c3e50;
-  font-weight: 600;
-  font-size: 1.1rem;
 }
 
 .chart-controls {
   display: flex;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .chart-controls button {
-  background-color: #f8f9fa;
-  border: 1px solid #dee2e6;
+  background: #f1f5f9;
+  border: none;
   border-radius: 6px;
-  padding: 0.375rem 0.75rem;
-  font-size: 0.875rem;
-  color: #6c757d;
+  padding: 6px 12px;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;
+  color: #64748b;
+  font-weight: 500;
 }
 
 .chart-controls button:hover {
-  background-color: #e9ecef;
+  background: #e2e8f0;
+  color: #475569;
 }
 
 .chart-controls button.active {
-  background-color: #3498db;
-  border-color: #3498db;
+  background: #3b82f6;
   color: white;
 }
 
+.chart-description {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
 .chart-container {
-  height: 220px;
-  display: flex;
   position: relative;
+  height: 200px;
+  display: flex;
 }
 
 .chart-y-axis {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding-right: 0.75rem;
-  font-size: 0.75rem;
-  color: #6c757d;
-  width: 40px;
-  height: 150px;
+  padding-right: 10px;
+}
+
+.chart-y-axis span {
+  font-size: 12px;
+  color: #64748b;
 }
 
 .chart-line-view {
-  flex: 1;
+  flex-grow: 1;
   position: relative;
-  height: 190px;
-  overflow: visible;
-}
-
-.chart-line-view::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 40px; /* Adjusted for x-axis labels */
-  height: 1px;
-  background-color: #eee;
-}
-
-.line-chart {
-  position: absolute;
-  left: 0;
-  top: 0;
-}
-
-.chart-line {
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  transition: stroke-dashoffset 0.5s ease;
-  stroke-dasharray: 1000;
-  stroke-dashoffset: 0;
-  animation: drawLine 1.5s ease forwards;
-}
-
-@keyframes drawLine {
-  from {
-    stroke-dashoffset: 1000;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-.chart-area {
-  opacity: 0;
-  animation: fadeIn 0.5s ease forwards;
-  animation-delay: 0.5s;
-}
-
-@keyframes fadeIn {
-  to {
-    opacity: 1;
-  }
-}
-
-.data-point {
-  transition: transform 0.2s;
-}
-
-.data-point:hover {
-  transform: scale(1.4);
-}
-
-.data-point-group:hover .data-label {
-  display: block;
-}
-
-.data-label {
-  font-size: 0.7rem;
-  fill: #333;
-  pointer-events: none;
-  display: none;
 }
 
 .x-axis-labels {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 40px;
-  display: flex;
+  position: relative;
+  height: 20px;
+  margin-top: 10px;
 }
 
 .x-label {
   position: absolute;
   transform: translateX(-50%);
-  font-size: 0.7rem;
-  color: #777;
+  font-size: 11px;
+  color: #64748b;
   text-align: center;
 }
 
-.chart-loading,
+.chart-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  font-size: 14px;
+  color: #64748b;
+}
+
 .no-data-message {
   display: flex;
-  justify-content: center;
   align-items: center;
-  height: 200px;
-  color: #6c757d;
-  font-size: 0.875rem;
+  justify-content: center;
+  height: 150px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.line-chart {
+  overflow: visible;
+}
+
+.chart-line {
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  opacity: 1;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.1));
+  transition: all 0.3s ease;
+}
+
+.chart-area {
+  opacity: 0.2;
+  transition: all 0.3s ease;
+}
+
+.sensor-chart:hover .chart-area {
+  opacity: 0.5;
+}
+
+.data-point {
+  stroke-width: 2;
+  fill: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.data-point:hover {
+  r: 6;
+  stroke-width: 3;
+}
+
+.data-label {
+  font-size: 10px;
+  fill: #475569;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.data-point-group:hover .data-label {
+  opacity: 1;
+}
+
+/* Themed colors for different sensor types */
+.chart-line.temperature {
+  stroke: #FF5733;
+}
+
+.chart-line.humidity {
+  stroke: #3498DB;
+}
+
+.chart-line.motion {
+  stroke: #2ECC71;
 }
 
 @media (max-width: 768px) {

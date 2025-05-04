@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import DeviceController from '../../controllers/DeviceController';
 import './DeviceControl.css';
 
@@ -8,16 +8,7 @@ const DeviceControl = () => {
   const [error, setError] = useState(null);
   const [isToggling, setIsToggling] = useState({});
   
-  useEffect(() => {
-    loadDevices();
-    
-    // Set up polling to refresh device states from the feed (every 3 seconds instead of 5)
-    const interval = setInterval(loadDevices, 3000);
-    
-    return () => clearInterval(interval);
-  }, []);
-  
-  const loadDevices = async () => {
+  const loadDevices = useCallback(async () => {
     // Don't set loading state during refresh to avoid UI flickering
     const initialLoad = isLoading;
     if (initialLoad) setIsLoading(true);
@@ -45,7 +36,16 @@ const DeviceControl = () => {
     } finally {
       if (initialLoad) setIsLoading(false);
     }
-  };
+  }, [isLoading, isToggling]);
+  
+  useEffect(() => {
+    loadDevices();
+    
+    // Set up polling to refresh device states from the feed (every 5 seconds)
+    const interval = setInterval(loadDevices, 5000);
+    
+    return () => clearInterval(interval);
+  }, [loadDevices]);
   
   const handleToggleDevice = async (deviceId, deviceType) => {
     try {

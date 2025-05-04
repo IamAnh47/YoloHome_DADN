@@ -24,10 +24,10 @@ const SensorChart = ({ sensorType, title, unit }) => {
   useEffect(() => {
     loadChartData();
     
-    // Set up auto-refresh interval (every 5 minutes)
+    // Set up auto-refresh interval (every 5 seconds)
     const refreshInterval = setInterval(() => {
       loadChartData();
-    }, 5 * 60 * 1000);
+    }, 5000);
     
     return () => clearInterval(refreshInterval);
   }, [sensorType, timeRange, loadChartData]);
@@ -85,16 +85,17 @@ const SensorChart = ({ sensorType, title, unit }) => {
     const chartHeight = 150; // pixels
     const range = maxValue - minValue;
     
-    // Calculate step based on number of points
-    const step = chartWidth / (chartData.length - 1);
-    
-    // For day view, order points from oldest to newest
+    // For day view, order points from oldest to newest to ensure proper timeline display
     // For week view, the data is already ordered by date
-    const sortedData = timeRange === 'day' 
-      ? [...chartData].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-      : chartData;
+    let displayData = chartData;
+    if (timeRange === 'day') {
+      displayData = [...chartData].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    }
     
-    return sortedData.map((item, index) => {
+    // Calculate even spacing between points
+    const step = displayData.length > 1 ? chartWidth / (displayData.length - 1) : 0;
+    
+    return displayData.map((item, index) => {
       const x = index * step;
       const y = chartHeight - ((item.value - minValue) / range * chartHeight);
       return { x, y, value: item.value, timestamp: item.timestamp };
@@ -110,12 +111,12 @@ const SensorChart = ({ sensorType, title, unit }) => {
     let path = `M ${points[0].x} ${points[0].y}`;
     
     for (let i = 1; i < points.length; i++) {
-      // Use bezier curves for smooth lines
-      const cp1x = points[i-1].x + (points[i].x - points[i-1].x) / 3;
-      const cp1y = points[i-1].y;
-      const cp2x = points[i].x - (points[i].x - points[i-1].x) / 3;
-      const cp2y = points[i].y;
-      path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${points[i].x} ${points[i].y}`;
+      // Create smooth curve with controlled curve tension
+      const ctrl1x = (points[i-1].x + points[i].x) / 2;
+      const ctrl1y = points[i-1].y;
+      const ctrl2x = (points[i-1].x + points[i].x) / 2;
+      const ctrl2y = points[i].y;
+      path += ` C ${ctrl1x} ${ctrl1y}, ${ctrl2x} ${ctrl2y}, ${points[i].x} ${points[i].y}`;
     }
     
     return path;
@@ -135,11 +136,44 @@ const SensorChart = ({ sensorType, title, unit }) => {
   
   const getChartDescription = () => {
     if (timeRange === 'day') {
-      return `Showing the 20 most recent readings from today`;
+      return `Showing the 30 most recent readings from today`;
     } else {
       return `Showing daily averages for the past 7 days`;
     }
   };
+  
+  // Add animated grid lines for better visual reference
+  useEffect(() => {
+    if (chartRef.current && !isLoading) {
+      // Simple animation for the chart elements
+      const lineElement = chartRef.current.querySelector('.chart-line');
+      const areaElement = chartRef.current.querySelector('.chart-area');
+      const pointElements = chartRef.current.querySelectorAll('.data-point');
+      
+      if (lineElement) {
+        lineElement.style.opacity = '0';
+        setTimeout(() => {
+          lineElement.style.opacity = '1';
+        }, 300);
+      }
+      
+      if (areaElement) {
+        areaElement.style.opacity = '0';
+        setTimeout(() => {
+          areaElement.style.opacity = '0.2';
+        }, 500);
+      }
+      
+      if (pointElements.length) {
+        pointElements.forEach((point, i) => {
+          point.style.opacity = '0';
+          setTimeout(() => {
+            point.style.opacity = '1';
+          }, 700 + i * 50);
+        });
+      }
+    }
+  }, [chartData, isLoading]);
   
   if (isLoading) {
     return (
@@ -206,8 +240,27 @@ const SensorChart = ({ sensorType, title, unit }) => {
                   stroke={colors.main} 
                   strokeWidth="2" 
                   fill="none" 
-                  className="chart-line"
+                  className={`chart-line ${sensorType}`}
                 />
+                
+                {/* Add animated grid lines for better visual reference */}
+                <g className="grid-lines">
+                  {[0, 1, 2, 3, 4].map((i) => {
+                    const y = (i * 150) / 4;
+                    return (
+                      <line
+                        key={i}
+                        x1="0"
+                        y1={y}
+                        x2="100%"
+                        y2={y}
+                        stroke="#e2e8f0"
+                        strokeWidth="1"
+                        strokeDasharray={i === 0 || i === 4 ? "none" : "5,5"}
+                      />
+                    );
+                  })}
+                </g>
                 
                 {/* Data points */}
                 {points.map((point, index) => (
@@ -237,10 +290,13 @@ const SensorChart = ({ sensorType, title, unit }) => {
               <div className="x-axis-labels">
                 {points.length > 0 && (
                   <>
-                    {/* Show fewer labels for better readability */}
+                    {/* Show evenly distributed labels for better readability */}
                     {points.filter((_, i) => 
                       timeRange === 'day' 
-                        ? i % Math.ceil(points.length / 5) === 0 || i === points.length - 1
+                        ? i === 0 || i === Math.floor(points.length / 4) || 
+                          i === Math.floor(points.length / 2) || 
+                          i === Math.floor(3 * points.length / 4) || 
+                          i === points.length - 1
                         : true // Show all labels for week view
                     ).map((point, index) => (
                       <div 
