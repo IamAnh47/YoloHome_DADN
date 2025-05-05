@@ -230,4 +230,114 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
+}
+
+/* Sensor Average Card */
+.sensor-average-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+
+.sensor-average-card.alert-active {
+  box-shadow: 0 4px 12px rgba(255, 77, 79, 0.2);
+}
+
+.sensor-average-card .card-header {
+  margin-bottom: 15px;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 10px;
+}
+
+.sensor-average-card .card-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+  display: flex;
+  align-items: center;
+}
+
+.sensor-average-card .card-header h3 i {
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+.sensor-average-card .card-body {
+  padding: 10px 0;
+}
+
+.sensor-average-card .average-value {
+  font-size: 32px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.sensor-average-card .average-value.high {
+  color: #ff4d4f;
+}
+
+.sensor-average-card .average-value.low {
+  color: #1890ff;
+}
+
+.sensor-average-card .data-meta {
+  text-align: center;
+  color: #8c8c8c;
+  font-size: 13px;
+  margin-bottom: 15px;
+}
+
+.sensor-average-card .alert-message {
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 4px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.sensor-average-card .alert-message.high {
+  background-color: #fff2f0;
+  border: 1px solid #ffccc7;
+  color: #cf1322;
+}
+
+.sensor-average-card .alert-message.low {
+  background-color: #e6f7ff;
+  border: 1px solid #bae7ff;
+  color: #1890ff;
+}
+
+.sensor-average-card .threshold-info {
+  margin-top: 15px;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 10px;
+}
+
+.sensor-average-card .threshold {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.sensor-average-card .threshold .label {
+  color: #8c8c8c;
+}
+
+.sensor-average-card .threshold .value {
+  font-weight: 600;
+  color: #333;
+}
+
+.sensor-average-card .card-footer {
+  border-top: 1px solid #f0f0f0;
+  padding-top: 10px;
+  text-align: right;
+  font-size: 12px;
+  color: #8c8c8c;
 } 

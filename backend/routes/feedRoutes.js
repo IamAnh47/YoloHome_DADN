@@ -13,4 +13,7 @@ router.get('/:type/data', feedController.getFeedDataByDate);
 // Get latest feed data
 router.get('/:type/latest', feedController.getLatestFeedData);
 
+// Get average feed data for last minute
+router.get('/:type/average', feedController.getFeedAverageForLastMinute);
+
 module.exports = router; 

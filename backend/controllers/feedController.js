@@ -221,4 +221,72 @@ exports.getLatestFeedData = async (req, res, next) => {
     console.error(`Error getting latest feed data for ${req.params.type}:`, error);
     next(error);
   }
+};
+
+// @desc    Get average feed data for last minute
+// @route   GET /api/feeds/:type/average
+// @access  Private
+exports.getFeedAverageForLastMinute = async (req, res, next) => {
+  try {
+    const { type } = req.params;
+    
+    // Validate feed type
+    if (!type || !['temperature', 'humidity', 'motion', 'fan', 'light'].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid feed type'
+      });
+    }
+    
+    // Get data from Adafruit IO for the last minute
+    const now = new Date();
+    const oneMinuteAgo = new Date(now);
+    oneMinuteAgo.setMinutes(now.getMinutes() - 1);
+    
+    const feedData = await adafruitService.getFeedDataByDate(
+      type, 
+      oneMinuteAgo.toISOString(), 
+      now.toISOString(), 
+      100
+    );
+    
+    // If no data, return empty response
+    if (!feedData || feedData.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: `No data available for ${type} feed in the last minute`,
+        data: {
+          average: null,
+          count: 0
+        }
+      });
+    }
+    
+    // Calculate average
+    let sum = 0;
+    let validCount = 0;
+    
+    for (const item of feedData) {
+      // Skip invalid values
+      if (isNaN(parseFloat(item.value))) continue;
+      
+      sum += parseFloat(item.value);
+      validCount++;
+    }
+    
+    const average = validCount > 0 ? sum / validCount : null;
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        average: average,
+        count: validCount,
+        fromTimestamp: oneMinuteAgo.toISOString(),
+        toTimestamp: now.toISOString()
+      }
+    });
+  } catch (error) {
+    console.error(`Error getting average feed data for ${req.params.type}:`, error);
+    next(error);
+  }
 }; 

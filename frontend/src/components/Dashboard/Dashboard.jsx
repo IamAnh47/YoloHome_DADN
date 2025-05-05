@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import SystemController from '../../controllers/SystemController';
 import SensorController from '../../controllers/SensorController';
 import AdafruitFeedChart from './AdafruitFeedChart';
+import SensorAverageCard from './SensorAverageCard';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -168,6 +169,13 @@ const Dashboard = () => {
       {/* Sensor Charts Section */}
       <div className="sensor-charts-section">
         <h2>Sensor History</h2>
+        
+        {/* Sensor Average Cards */}
+        <div className="average-readings-grid">
+          <SensorAverageCard sensorType="temperature" />
+          <SensorAverageCard sensorType="humidity" />
+        </div>
+        
         <div className="charts-container">
           <div className="adafruit-charts">
             <AdafruitFeedChart 

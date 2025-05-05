@@ -297,6 +297,44 @@ class SensorController {
       return [];
     }
   }
+
+  /**
+   * Get average feed data for the last minute
+   * @param {string} feedType - Type of feed (temperature, humidity)
+   * @returns {Promise<Object>} - Average feed data with count
+   */
+  static async getFeedAverageForLastMinute(feedType) {
+    try {
+      console.log(`Fetching ${feedType} average for last minute`);
+      
+      // Add cache buster
+      const cacheBuster = `?_t=${Date.now()}`;
+      const response = await apiService.get(`/feeds/${feedType}/average${cacheBuster}`);
+      
+      if (response.data && response.data.data) {
+        return {
+          average: response.data.data.average,
+          count: response.data.data.count,
+          fromTimestamp: response.data.data.fromTimestamp,
+          toTimestamp: response.data.data.toTimestamp
+        };
+      }
+      
+      return {
+        average: null,
+        count: 0,
+        fromTimestamp: null,
+        toTimestamp: null
+      };
+    } catch (error) {
+      console.error(`Error fetching ${feedType} average:`, error);
+      return {
+        average: null,
+        count: 0,
+        error: error.message
+      };
+    }
+  }
 }
 
 export default SensorController;

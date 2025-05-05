@@ -249,3 +249,17 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Grid cho Sensor Average Cards */
+.average-readings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+@media (max-width: 768px) {
+  .average-readings-grid {
+    grid-template-columns: 1fr;
+  }
+}
