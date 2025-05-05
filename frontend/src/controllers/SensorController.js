@@ -253,17 +253,24 @@ class SensorController {
    * @param {string} [endDate=null] - End date in YYYY-MM-DD format
    * @param {number} [limit=50] - Maximum number of records to return
    * @param {boolean} [forceFresh=false] - Force fetching fresh data
+   * @param {string} [timeRange='day'] - Time range (day, week, month)
    * @returns {Promise<Array>} Feed data with timestamps
    */
-  static async getFeedDataByDate(feedType, startDate = null, endDate = null, limit = 50, forceFresh = false) {
+  static async getFeedDataByDate(feedType, startDate = null, endDate = null, limit = 50, forceFresh = false, timeRange = 'day') {
     try {
-      console.log(`Fetching ${feedType} feed data by date range`);
+      console.log(`Fetching ${feedType} feed data by date range for ${timeRange}`);
       
       // Build query params
       let params = [];
       if (startDate) params.push(`startDate=${startDate}`);
       if (endDate) params.push(`endDate=${endDate}`);
       if (limit) params.push(`limit=${limit}`);
+      
+      // Add interval parameter for week view (24-hour history)
+      // This triggers the 30-minute data aggregation on the backend
+      if (timeRange === 'week') {
+        params.push('interval=30min');
+      }
       
       // Add cache buster to prevent caching
       params.push(`_t=${Date.now()}`);

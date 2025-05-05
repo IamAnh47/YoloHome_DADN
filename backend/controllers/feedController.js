@@ -159,8 +159,8 @@ exports.getFeedDataAggregated = async (req, res, next) => {
     // Sort by timestamp in ascending order
     aggregatedData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
     
-    // Return only the last 50 data points if there are more
-    const limitedData = aggregatedData.slice(-50);
+    // Return only the last 48 data points if there are more (exactly 24 hours of 30-minute intervals)
+    const limitedData = aggregatedData.slice(-48);
     
     res.status(200).json({
       success: true,

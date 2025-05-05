@@ -36,7 +36,7 @@ const AdafruitFeedChart = ({ feedType, title, timeRange = 'day' }) => {
       const formattedEndDate = today.toISOString();
       
       // Get feed data from Adafruit IO - adjust limit based on time range
-      // Increase limit for 'week' (24 hours) to get all data points
+      // For week view (24 hours), pass a higher limit to ensure we have enough data points for aggregation
       const limit = timeRange === 'day' ? 25 : timeRange === 'week' ? 500 : 200;
       
       const data = await SensorController.getFeedDataByDate(
@@ -44,7 +44,8 @@ const AdafruitFeedChart = ({ feedType, title, timeRange = 'day' }) => {
         formattedStartDate, 
         formattedEndDate, 
         limit, 
-        true
+        true,
+        timeRange  // Pass timeRange to enable proper aggregation
       );
       
       setChartData(data);
