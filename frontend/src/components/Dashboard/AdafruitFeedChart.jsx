@@ -18,25 +18,25 @@ const AdafruitFeedChart = ({ feedType, title, timeRange = 'day' }) => {
       const today = new Date();
       
       if (timeRange === 'day') {
-        // Set to 1 minute ago instead of 24 hours ago
+        // Set to 10 minutes ago for 'day' view
         startDate = new Date(today);
-        startDate.setMinutes(today.getMinutes() - 1);
+        startDate.setMinutes(today.getMinutes() - 10);
       } else if (timeRange === 'week') {
-        // Set to 7 days ago
+        // Set to 24 hours ago for 'week' view (used for 24-hour history)
         startDate = new Date(today);
-        startDate.setDate(startDate.getDate() - 7);
+        startDate.setHours(today.getHours() - 24);
       } else if (timeRange === 'month') {
         // Set to 30 days ago
         startDate = new Date(today);
         startDate.setDate(startDate.getDate() - 30);
       }
       
-      // Format dates as YYYY-MM-DD
+      // Format dates as ISO string
       const formattedStartDate = startDate ? startDate.toISOString() : null;
       const formattedEndDate = today.toISOString();
       
-      // Get feed data from Adafruit IO - for 'day' only get last 10 records instead of 50
-      const limit = timeRange === 'day' ? 10 : timeRange === 'week' ? 100 : 200;
+      // Get feed data from Adafruit IO - adjust limit based on time range
+      const limit = timeRange === 'day' ? 25 : timeRange === 'week' ? 100 : 200;
       const data = await SensorController.getFeedDataByDate(
         feedType, 
         formattedStartDate, 
@@ -69,14 +69,13 @@ const AdafruitFeedChart = ({ feedType, title, timeRange = 'day' }) => {
     const date = new Date(timestamp);
     
     if (timeRange === 'day') {
-      // For day view, show time in HH:MM format
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      // For day view (10 minutes), show time in HH:MM:SS format
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     } else if (timeRange === 'week') {
-      // For week view, show date with day of week
-      return date.toLocaleDateString([], {
-        weekday: 'short',
-        month: 'numeric',
-        day: 'numeric'
+      // For week view (24 hours), show date and time in HH:MM format
+      return date.toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit' 
       });
     } else {
       // For month view, show date only
@@ -136,7 +135,12 @@ const AdafruitFeedChart = ({ feedType, title, timeRange = 'day' }) => {
       </div>
       
       <div className="chart-description">
-        Showing data from Adafruit IO feed for the last minute
+        {timeRange === 'day' 
+          ? 'Showing data from Adafruit IO feed for the last 10 minutes'
+          : timeRange === 'week' 
+            ? 'Showing data from Adafruit IO feed for the last 24 hours' 
+            : 'Showing data from Adafruit IO feed'
+        }
       </div>
       
       <div className="chart-container">

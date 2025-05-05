@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import SensorController from '../../controllers/SensorController';
-import SensorHistoryCharts from '../Dashboard/SensorHistoryCharts';
 import AdafruitFeedChart from '../Dashboard/AdafruitFeedChart';
 import './SensorsPage.css';
 
@@ -105,9 +104,9 @@ const SensorsPage = () => {
         </div>
       </div>
       
-      {/* Adafruit Feed Charts */}
+      {/* Adafruit Feed Charts - 10 minutes data */}
       <div className="charts-section">
-        <h2>Adafruit IO Feed Data (Last 24 Hours)</h2>
+        <h2>Adafruit IO Feed Data (Last 10 Minutes)</h2>
         <div className="adafruit-charts">
           <AdafruitFeedChart 
             feedType="temperature" 
@@ -123,9 +122,22 @@ const SensorsPage = () => {
         </div>
       </div>
       
-      {/* Sensor History Charts */}
+      {/* Sensor History Charts - 24 hours data */}
       <div className="charts-section">
-        <SensorHistoryCharts />
+        <h2>Sensor History (Last 24 Hours)</h2>
+        <div className="adafruit-charts">
+          <AdafruitFeedChart 
+            feedType="temperature" 
+            title="Temperature History" 
+            timeRange="week"
+          />
+          
+          <AdafruitFeedChart 
+            feedType="humidity" 
+            title="Humidity History" 
+            timeRange="week"
+          />
+        </div>
       </div>
     </div>
   );

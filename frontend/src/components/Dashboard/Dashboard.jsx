@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import SystemController from '../../controllers/SystemController';
 import SensorController from '../../controllers/SensorController';
-import SensorHistoryCharts from './SensorHistoryCharts';
 import AdafruitFeedChart from './AdafruitFeedChart';
 import './Dashboard.css';
 
@@ -173,17 +172,16 @@ const Dashboard = () => {
           <div className="adafruit-charts">
             <AdafruitFeedChart 
               feedType="temperature" 
-              title="Temperature Feed" 
+              title="Temperature History" 
               timeRange="day"
             />
             
             <AdafruitFeedChart 
               feedType="humidity" 
-              title="Humidity Feed" 
+              title="Humidity History" 
               timeRange="day"
             />
           </div>
-          <SensorHistoryCharts />
         </div>
       </div>
     </div>
