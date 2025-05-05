@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import SystemController from '../../controllers/SystemController';
 import SensorController from '../../controllers/SensorController';
 import SensorChart from './SensorChart';
+import RecentReadingsChart from './RecentReadingsChart';
+import SensorHistoryCharts from './SensorHistoryCharts';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -169,16 +171,8 @@ const Dashboard = () => {
       <div className="sensor-charts-section">
         <h2>Sensor History</h2>
         <div className="charts-container">
-          <SensorChart 
-            sensorType="temperature" 
-            title="Temperature History" 
-            unit="°C" 
-          />
-          <SensorChart 
-            sensorType="humidity" 
-            title="Humidity History" 
-            unit="%" 
-          />
+          <RecentReadingsChart limit={10} />
+          <SensorHistoryCharts />
         </div>
       </div>
     </div>

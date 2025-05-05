@@ -198,6 +198,10 @@
   gap: 25px;
 }
 
+.charts-section {
+  margin: 25px 0;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .sensors-header {

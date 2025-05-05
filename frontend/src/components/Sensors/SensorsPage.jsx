@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import SensorController from '../../controllers/SensorController';
-import SensorChart from '../Dashboard/SensorChart';
+import RecentReadingsChart from '../Dashboard/RecentReadingsChart';
+import SensorHistoryCharts from '../Dashboard/SensorHistoryCharts';
 import './SensorsPage.css';
 
 const SensorsPage = () => {
@@ -52,57 +53,41 @@ const SensorsPage = () => {
   return (
     <div className="sensors-page">
       <div className="sensors-header">
-        <h1>Sensors Data</h1>
-        <div className="refresh-controls">
-          <button onClick={loadSensorData} disabled={isLoading} className="refresh-button">
-            {isLoading ? 
-              <><i className="fas fa-spinner fa-spin"></i> Refreshing...</> : 
-              <><i className="fas fa-sync-alt"></i> Refresh Now</>
-            }
-          </button>
+        <h1>Sensors</h1>
+        <div className="last-updated">
+          Last updated: {lastUpdated || 'Loading...'}
         </div>
       </div>
       
-      <div className="last-updated">
-        Last updated: {lastUpdated}
-      </div>
-      
       <div className="sensors-grid">
-        {/* Temperature Card */}
         <div className="sensor-card">
           <div className="sensor-icon">
             <i className="fas fa-thermometer-half"></i>
           </div>
           <div className="sensor-info">
             <h2>Temperature</h2>
-            <div className="sensor-value">
-              {sensorData.temperature}°C
-            </div>
+            <div className="sensor-value">{sensorData.temperature}°C</div>
             <div className="sensor-details">
-              <p>Measured from smart temperature sensor</p>
-              <p>Normal range: 18-28°C</p>
+              <p>Room temperature</p>
+              <p>Recorded by temperature sensor</p>
             </div>
           </div>
         </div>
         
-        {/* Humidity Card */}
         <div className="sensor-card">
           <div className="sensor-icon">
             <i className="fas fa-tint"></i>
           </div>
           <div className="sensor-info">
             <h2>Humidity</h2>
-            <div className="sensor-value">
-              {sensorData.humidity}%
-            </div>
+            <div className="sensor-value">{sensorData.humidity}%</div>
             <div className="sensor-details">
-              <p>Measured from smart humidity sensor</p>
-              <p>Normal range: 30-60%</p>
+              <p>Relative humidity level</p>
+              <p>Recorded by humidity sensor</p>
             </div>
           </div>
         </div>
         
-        {/* Motion Card */}
         <div className="sensor-card">
           <div className={`sensor-icon ${sensorData.motion ? 'active' : ''}`}>
             <i className="fas fa-running"></i>
@@ -120,21 +105,14 @@ const SensorsPage = () => {
         </div>
       </div>
       
-      {/* Sensor Charts Section */}
-      <div className="sensor-charts-section">
-        <h2>Sensor History</h2>
-        <div className="charts-container">
-          <SensorChart 
-            sensorType="temperature" 
-            title="Temperature History" 
-            unit="°C" 
-          />
-          <SensorChart 
-            sensorType="humidity" 
-            title="Humidity History" 
-            unit="%" 
-          />
-        </div>
+      {/* Recent Readings Chart */}
+      <div className="charts-section">
+        <RecentReadingsChart limit={15} />
+      </div>
+      
+      {/* Sensor History Charts */}
+      <div className="charts-section">
+        <SensorHistoryCharts />
       </div>
     </div>
   );
