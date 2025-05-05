@@ -172,13 +172,13 @@ const Dashboard = () => {
           <div className="adafruit-charts">
             <AdafruitFeedChart 
               feedType="temperature" 
-              title="Temperature History" 
+              title="Temperature History (10 Minutes)" 
               timeRange="day"
             />
             
             <AdafruitFeedChart 
               feedType="humidity" 
-              title="Humidity History" 
+              title="Humidity History (10 Minutes)" 
               timeRange="day"
             />
           </div>

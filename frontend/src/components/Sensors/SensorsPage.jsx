@@ -110,13 +110,13 @@ const SensorsPage = () => {
         <div className="adafruit-charts">
           <AdafruitFeedChart 
             feedType="temperature" 
-            title="Temperature Feed" 
+            title="Temperature Feed (10 Minutes)" 
             timeRange="day"
           />
           
           <AdafruitFeedChart 
             feedType="humidity" 
-            title="Humidity Feed" 
+            title="Humidity Feed (10 Minutes)" 
             timeRange="day"
           />
         </div>
@@ -128,13 +128,13 @@ const SensorsPage = () => {
         <div className="adafruit-charts">
           <AdafruitFeedChart 
             feedType="temperature" 
-            title="Temperature History" 
+            title="Temperature History (24 Hours)" 
             timeRange="week"
           />
           
           <AdafruitFeedChart 
             feedType="humidity" 
-            title="Humidity History" 
+            title="Humidity History (24 Hours)" 
             timeRange="week"
           />
         </div>
