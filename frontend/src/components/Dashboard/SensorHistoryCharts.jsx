@@ -101,7 +101,7 @@ const SensorHistoryCharts = () => {
       {/* Temperature Chart */}
       <div className="sensor-chart">
         <div className="chart-header">
-          <h4>Temperature History ({timeRange === 'day' ? 'Today' : 'Past Week'})</h4>
+          <h4>Temperature History ({timeRange === 'day' ? 'Last 24 hours' : 'Past Week'})</h4>
         </div>
         <div className="chart-container">
           {temperatureData.length > 0 ? (
@@ -147,7 +147,7 @@ const SensorHistoryCharts = () => {
       {/* Humidity Chart */}
       <div className="sensor-chart">
         <div className="chart-header">
-          <h4>Humidity History ({timeRange === 'day' ? 'Today' : 'Past Week'})</h4>
+          <h4>Humidity History ({timeRange === 'day' ? 'Last 24 hours' : 'Past Week'})</h4>
         </div>
         <div className="chart-container">
           {humidityData.length > 0 ? (

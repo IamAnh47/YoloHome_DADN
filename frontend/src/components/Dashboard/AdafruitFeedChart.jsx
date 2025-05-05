@@ -18,9 +18,9 @@ const AdafruitFeedChart = ({ feedType, title, timeRange = 'day' }) => {
       const today = new Date();
       
       if (timeRange === 'day') {
-        // Set to start of today
+        // Set to 24 hours ago instead of start of day
         startDate = new Date(today);
-        startDate.setHours(0, 0, 0, 0);
+        startDate.setHours(today.getHours() - 24);
       } else if (timeRange === 'week') {
         // Set to 7 days ago
         startDate = new Date(today);
@@ -136,7 +136,7 @@ const AdafruitFeedChart = ({ feedType, title, timeRange = 'day' }) => {
       </div>
       
       <div className="chart-description">
-        Showing data from Adafruit IO feed based on Created At timestamp
+        Showing data from Adafruit IO feed for the last 24 hours
       </div>
       
       <div className="chart-container">

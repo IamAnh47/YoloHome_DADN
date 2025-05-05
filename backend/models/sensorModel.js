@@ -203,13 +203,13 @@ class SensorModel {
   
   static async getSensorHistory(sensorId, limit = 24, timeRange = 'day') {
     try {
-      // For day view: Get the 30 most recent readings for the current day
+      // For day view: Get readings from the last 24 hours instead of current day
       if (timeRange === 'day') {
         const query = `
           SELECT data_id, sensor_id, svalue, recorded_time
           FROM sensor_data
           WHERE sensor_id = $1
-          AND recorded_time >= CURRENT_DATE
+          AND recorded_time >= NOW() - INTERVAL '24 hours'
           ORDER BY recorded_time ASC
           LIMIT 30
         `;
