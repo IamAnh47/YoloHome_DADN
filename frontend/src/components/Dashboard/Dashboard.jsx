@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import SystemController from '../../controllers/SystemController';
 import SensorController from '../../controllers/SensorController';
-import RecentReadingsChart from './RecentReadingsChart';
 import SensorHistoryCharts from './SensorHistoryCharts';
+import AdafruitFeedChart from './AdafruitFeedChart';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -170,7 +170,19 @@ const Dashboard = () => {
       <div className="sensor-charts-section">
         <h2>Sensor History</h2>
         <div className="charts-container">
-          <RecentReadingsChart limit={10} />
+          <div className="adafruit-charts">
+            <AdafruitFeedChart 
+              feedType="temperature" 
+              title="Temperature Feed" 
+              timeRange="day"
+            />
+            
+            <AdafruitFeedChart 
+              feedType="humidity" 
+              title="Humidity Feed" 
+              timeRange="day"
+            />
+          </div>
           <SensorHistoryCharts />
         </div>
       </div>

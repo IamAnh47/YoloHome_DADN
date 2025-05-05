@@ -18,9 +18,9 @@ const AdafruitFeedChart = ({ feedType, title, timeRange = 'day' }) => {
       const today = new Date();
       
       if (timeRange === 'day') {
-        // Set to 24 hours ago instead of start of day
+        // Set to 1 minute ago instead of 24 hours ago
         startDate = new Date(today);
-        startDate.setHours(today.getHours() - 24);
+        startDate.setMinutes(today.getMinutes() - 1);
       } else if (timeRange === 'week') {
         // Set to 7 days ago
         startDate = new Date(today);
@@ -32,11 +32,11 @@ const AdafruitFeedChart = ({ feedType, title, timeRange = 'day' }) => {
       }
       
       // Format dates as YYYY-MM-DD
-      const formattedStartDate = startDate ? startDate.toISOString().split('T')[0] : null;
-      const formattedEndDate = today.toISOString().split('T')[0];
+      const formattedStartDate = startDate ? startDate.toISOString() : null;
+      const formattedEndDate = today.toISOString();
       
-      // Get feed data from Adafruit IO
-      const limit = timeRange === 'day' ? 50 : timeRange === 'week' ? 100 : 200;
+      // Get feed data from Adafruit IO - for 'day' only get last 10 records instead of 50
+      const limit = timeRange === 'day' ? 10 : timeRange === 'week' ? 100 : 200;
       const data = await SensorController.getFeedDataByDate(
         feedType, 
         formattedStartDate, 
@@ -136,7 +136,7 @@ const AdafruitFeedChart = ({ feedType, title, timeRange = 'day' }) => {
       </div>
       
       <div className="chart-description">
-        Showing data from Adafruit IO feed for the last 24 hours
+        Showing data from Adafruit IO feed for the last minute
       </div>
       
       <div className="chart-container">
