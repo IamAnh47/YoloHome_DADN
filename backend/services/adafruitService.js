@@ -184,6 +184,52 @@ class AdafruitService {
       return null;
     }
   }
+
+  /**
+   * Get feed data by date range
+   * @param {string} feedId - The ID or name of the feed
+   * @param {string} startDate - Start date in ISO format (YYYY-MM-DD)
+   * @param {string} endDate - End date in ISO format (YYYY-MM-DD)
+   * @param {number} limit - Maximum number of records to return
+   * @returns {Promise<Array>} - Array of feed data
+   */
+  async getFeedDataByDate(feedId, startDate = null, endDate = null, limit = 50) {
+    if (!this.enabled) {
+      logger.info(`Adafruit IO get by date skipped (DISABLED): Feed: ${feedId}`);
+      return [];
+    }
+    
+    try {
+      let url = `${this.baseUrl}/dadn.${feedId}/data`;
+      const params = [];
+      
+      if (limit) {
+        params.push(`limit=${limit}`);
+      }
+      
+      if (startDate) {
+        const formattedStartDate = new Date(startDate).toISOString();
+        params.push(`start_time=${encodeURIComponent(formattedStartDate)}`);
+      }
+      
+      if (endDate) {
+        const formattedEndDate = new Date(endDate).toISOString();
+        params.push(`end_time=${encodeURIComponent(formattedEndDate)}`);
+      }
+      
+      if (params.length > 0) {
+        url += '?' + params.join('&');
+      }
+      
+      logger.info(`Fetching feed data by date: ${url}`);
+      const response = await axios.get(url, { headers });
+      
+      return response.data || [];
+    } catch (error) {
+      logger.error(`Error fetching feed data by date: ${error.message}`);
+      return [];
+    }
+  }
 }
 
 // Export singleton instance

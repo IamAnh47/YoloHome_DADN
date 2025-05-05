@@ -245,6 +245,51 @@ class SensorController {
     console.log(`Unknown cache type: ${dataType}, returning empty array`);
     return [];
   }
+
+  /**
+   * Get feed data from Adafruit IO by date
+   * @param {string} feedType - Type of feed (temperature, humidity, motion, fan, light)
+   * @param {string} [startDate=null] - Start date in YYYY-MM-DD format
+   * @param {string} [endDate=null] - End date in YYYY-MM-DD format
+   * @param {number} [limit=50] - Maximum number of records to return
+   * @param {boolean} [forceFresh=false] - Force fetching fresh data
+   * @returns {Promise<Array>} Feed data with timestamps
+   */
+  static async getFeedDataByDate(feedType, startDate = null, endDate = null, limit = 50, forceFresh = false) {
+    try {
+      console.log(`Fetching ${feedType} feed data by date range`);
+      
+      // Build query params
+      let params = [];
+      if (startDate) params.push(`startDate=${startDate}`);
+      if (endDate) params.push(`endDate=${endDate}`);
+      if (limit) params.push(`limit=${limit}`);
+      
+      // Add cache buster to prevent caching
+      params.push(`_t=${Date.now()}`);
+      
+      const queryString = params.length > 0 ? `?${params.join('&')}` : '';
+      const response = await apiService.get(`/feeds/${feedType}/data${queryString}`);
+      
+      if (response.data && response.data.data) {
+        // Format the data for charts
+        const formattedData = response.data.data.map(item => ({
+          id: item.id,
+          timestamp: item.timestamp,
+          value: item.value,
+          feed: item.feed
+        }));
+        
+        return formattedData;
+      }
+      
+      console.warn('Invalid data format received from API');
+      return [];
+    } catch (error) {
+      console.error(`Error fetching ${feedType} feed data:`, error);
+      return [];
+    }
+  }
 }
 
 export default SensorController;

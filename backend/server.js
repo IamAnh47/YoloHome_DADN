@@ -18,6 +18,7 @@ const sensorRoutes = require('./routes/sensorRoutes');
 const alertRoutes = require('./routes/alertRoutes');
 const alertConfigRoutes = require('./routes/alertConfigRoutes');
 const statusRoutes = require('./routes/statusRoutes');
+const feedRoutes = require('./routes/feedRoutes');
 
 // Initialize express app
 const app = express();
@@ -40,6 +41,7 @@ app.use('/api/sensors', sensorRoutes);
 app.use('/api/alerts', alertRoutes);
 app.use('/api/alert-config', alertConfigRoutes);
 app.use('/api/status', statusRoutes);
+app.use('/api/feeds', feedRoutes);
 
 // Serve frontend in production
 if (process.env.NODE_ENV === 'production') {

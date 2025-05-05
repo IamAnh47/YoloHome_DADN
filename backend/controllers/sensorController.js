@@ -1,6 +1,7 @@
 const SensorModel = require('../models/sensorModel');
 const predictionService = require('../services/predictionService');
 const alertService = require('../services/alertService');
+const adafruitService = require('../services/adafruitService');
 
 // @desc    Get all sensors
 // @route   GET /api/sensors
@@ -471,6 +472,60 @@ exports.getLatestSensorByType = async (req, res, next) => {
     });
   } catch (error) {
     console.error(`Error getting latest ${req.params.type} data:`, error);
+    next(error);
+  }
+};
+
+// @desc    Get feed data from Adafruit IO by date
+// @route   GET /api/sensors/feeds/:type/data
+// @access  Private
+exports.getFeedDataByDate = async (req, res, next) => {
+  try {
+    const { type } = req.params;
+    const { startDate, endDate, limit } = req.query;
+    
+    // Validate sensor type
+    if (!type || !['temperature', 'humidity', 'motion', 'fan', 'light'].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid feed type'
+      });
+    }
+    
+    // Get data from Adafruit IO
+    const feedData = await adafruitService.getFeedDataByDate(
+      type, 
+      startDate || null, 
+      endDate || null, 
+      limit ? parseInt(limit) : 50
+    );
+    
+    // Format the data for charts
+    const formattedData = feedData.map(item => {
+      let value;
+      
+      // Convert value based on feed type
+      if (type === 'motion' || type === 'fan' || type === 'light') {
+        value = parseInt(item.value) > 0;
+      } else {
+        value = parseFloat(item.value);
+      }
+      
+      return {
+        id: item.id,
+        value: value,
+        timestamp: item.created_at,
+        feed: type
+      };
+    });
+    
+    res.status(200).json({
+      success: true,
+      count: formattedData.length,
+      data: formattedData
+    });
+  } catch (error) {
+    console.error(`Error getting feed data for ${req.params.type}:`, error);
     next(error);
   }
 };
