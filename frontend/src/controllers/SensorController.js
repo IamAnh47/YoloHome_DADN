@@ -81,28 +81,28 @@ class SensorController {
         }
         
         const response = await apiService.get(endpoint + cacheBuster);
+      
+      if (response.data && response.data.data) {
+        const data = response.data.data;
+        console.log('API response data:', data);
         
-        if (response.data && response.data.data) {
-          const data = response.data.data;
-          console.log('API response data:', data);
-          
           // Format data consistently
           const formattedData = {
             // Ensure values are numbers before formatting
-            temperature: (typeof data.temperature === 'number' ? data.temperature : parseFloat(data.temperature || 0)).toFixed(1),
-            humidity: (typeof data.humidity === 'number' ? data.humidity : parseFloat(data.humidity || 0)).toFixed(1),
-            motion: Boolean(data.motion)
-          };
+          temperature: (typeof data.temperature === 'number' ? data.temperature : parseFloat(data.temperature || 0)).toFixed(1),
+          humidity: (typeof data.humidity === 'number' ? data.humidity : parseFloat(data.humidity || 0)).toFixed(1),
+          motion: Boolean(data.motion)
+        };
           
           // Update cache and timestamp
           this.cache.readings = formattedData;
           this.updateTimestamp('readings');
           
           return formattedData;
-        }
-        
-        console.warn('API response structure:', JSON.stringify(response.data));
-        throw new Error('Invalid data format received from API');
+      }
+      
+      console.warn('API response structure:', JSON.stringify(response.data));
+      throw new Error('Invalid data format received from API');
       } else {
         console.log('Using cached sensor readings');
         return this.getFromCache('readings');
@@ -176,15 +176,15 @@ class SensorController {
         // Fetch real alerts from API with cache buster
         const cacheBuster = `?_t=${Date.now()}`;
         const response = await apiService.get('/alerts/recent' + cacheBuster);
-        
-        if (response.data && response.data.data && Array.isArray(response.data.data)) {
+      
+      if (response.data && response.data.data && Array.isArray(response.data.data)) {
           const alertsData = response.data.data.map(alert => ({
-            id: alert.alert_id,
-            type: alert.alert_type.toLowerCase(),
-            message: alert.amessage,
-            timestamp: alert.alerted_time,
-            status: alert.status
-          }));
+          id: alert.alert_id,
+          type: alert.alert_type.toLowerCase(),
+          message: alert.amessage,
+          timestamp: alert.alerted_time,
+          status: alert.status
+        }));
           
           // Update cache and timestamp
           this.cache.alerts = alertsData;
@@ -197,9 +197,6 @@ class SensorController {
           this.updateTimestamp('alerts');
           return [];
         }
-        
-        console.warn('API response structure:', JSON.stringify(response.data));
-        throw new Error('Invalid data format received from API');
       } else {
         console.log('Using cached alerts data');
         return this.getFromCache('alerts');

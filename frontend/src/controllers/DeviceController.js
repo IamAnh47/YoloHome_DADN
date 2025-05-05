@@ -39,7 +39,7 @@ class DeviceController {
         });
       }
       
-      throw new Error('Device not found');
+        throw new Error('Device not found');
     } catch (error) {
       console.error(`Error fetching device with id ${id}:`, error);
       throw error;

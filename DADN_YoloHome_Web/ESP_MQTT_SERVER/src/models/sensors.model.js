@@ -3,17 +3,17 @@ const pool = require('../clients/db');
 const createSensorDataTable = async () => {
   try {
     // PostgreSQL version
-    const query = `
-      CREATE TABLE IF NOT EXISTS sensor_data (
-        data_id SERIAL PRIMARY KEY,
-        sensor_id INT NOT NULL,
-        svalue FLOAT NOT NULL,
-        recorded_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (sensor_id) REFERENCES sensor(sensor_id) ON DELETE CASCADE
-      );
-    `;
+  const query = `
+    CREATE TABLE IF NOT EXISTS sensor_data (
+      data_id SERIAL PRIMARY KEY,
+      sensor_id INT NOT NULL,
+      svalue FLOAT NOT NULL,
+      recorded_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (sensor_id) REFERENCES sensor(sensor_id) ON DELETE CASCADE
+    );
+  `;
     
-    await pool.query(query);
+  await pool.query(query);
     console.log('Sensor data table initialized successfully');
   } catch (err) {
     console.error('Error creating sensor_data table:', err.message);

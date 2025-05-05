@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import SystemController from '../../controllers/SystemController';
 import SensorController from '../../controllers/SensorController';
-import SensorChart from './SensorChart';
 import RecentReadingsChart from './RecentReadingsChart';
 import SensorHistoryCharts from './SensorHistoryCharts';
 import './Dashboard.css';
@@ -15,7 +14,7 @@ const Dashboard = () => {
     sensors: {
       temperature: '0.0',
       humidity: '0.0',
-      motion: false
+    motion: false
     }
   });
   

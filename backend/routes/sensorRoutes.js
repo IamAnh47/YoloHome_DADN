@@ -24,4 +24,4 @@ router.get('/:id', sensorController.getSensor);
 // Create new sensor data - commented out due to missing controller method
 // router.post('/data', sensorController.createSensorData);
 
-module.exports = router; 
+module.exports = router;

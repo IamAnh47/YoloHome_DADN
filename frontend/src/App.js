@@ -4,8 +4,7 @@ import {
   Routes, 
   Route, 
   Navigate,
-  useLocation,
-  useNavigate
+  useLocation
 } from 'react-router-dom';
 import Login from './components/Login/Login';
 import Dashboard from './components/Dashboard/Dashboard';
@@ -45,10 +44,10 @@ function App() {
   if (isLoading) {
     return <div className="loading">Loading...</div>;
   }
-
+  
   return (
     <AuthContext.Provider value={{ isAuthenticated, handleLogin, handleLogout }}>
-      <Router>
+    <Router>
         <AppContent />
       </Router>
     </AuthContext.Provider>
@@ -70,7 +69,7 @@ function AppContent() {
   }
   
   return (
-    <div className="app">
+      <div className="app">
       {isAuthenticated ? (
         <AuthenticatedLayout />
       ) : (
@@ -97,24 +96,24 @@ function AuthenticatedLayout() {
   const { handleLogout } = React.useContext(AuthContext);
   
   return (
-    <div className="app-container">
-      <Header onLogout={handleLogout} />
-      <div className="main-container">
-        <Sidebar />
-        <main className="content">
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/devices" element={<DeviceControl />} />
+              <div className="app-container">
+                <Header onLogout={handleLogout} />
+                <div className="main-container">
+                  <Sidebar />
+                  <main className="content">
+                    <Routes>
+                      <Route path="/" element={<Navigate to="/dashboard" />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/devices" element={<DeviceControl />} />
             <Route path="/sensors" element={<SensorsPage />} />
-            <Route path="/alerts" element={<Alerts />} />
-            <Route path="/alert-config" element={<AlertConfig />} />
+                      <Route path="/alerts" element={<Alerts />} />
+                      <Route path="/alert-config" element={<AlertConfig />} />
             <Route path="*" element={<Navigate to="/dashboard" />} />
-          </Routes>
-        </main>
-      </div>
-      <Footer />
-    </div>
+                    </Routes>
+                  </main>
+                </div>
+                <Footer />
+              </div>
   );
 }
 

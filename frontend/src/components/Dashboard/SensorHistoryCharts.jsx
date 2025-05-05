@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, 
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, 
   ResponsiveContainer, AreaChart, Area
 } from 'recharts';
 import SensorController from '../../controllers/SensorController';
@@ -21,7 +21,7 @@ const SensorHistoryCharts = () => {
     }, 60000); // Refresh every minute for historical data
     
     return () => clearInterval(refreshInterval);
-  }, [timeRange]);
+  }, [timeRange, loadChartData]);
 
   const loadChartData = async () => {
     setIsLoading(true);

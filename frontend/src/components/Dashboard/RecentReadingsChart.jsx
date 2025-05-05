@@ -16,7 +16,7 @@ const RecentReadingsChart = ({ limit = 10 }) => {
     }, 5000);
     
     return () => clearInterval(refreshInterval);
-  }, []);
+  }, [loadChartData]);
 
   const loadChartData = async () => {
     setIsLoading(true);

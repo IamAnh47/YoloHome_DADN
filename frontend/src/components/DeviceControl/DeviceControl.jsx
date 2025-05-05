@@ -126,44 +126,44 @@ const DeviceControl = () => {
       
       <div className="registered-devices">
         <h2>Registered Devices</h2>
-        <div className="device-grid">
-          {devices.length > 0 ? (
-            devices.map(device => (
-              <div key={device.id} className="device-card">
-                <div className="device-header">
-                  <div className="device-icon">
-                    <i className={deviceTypeIcons[device.type] || 'fas fa-plug'}></i>
-                  </div>
-                  <div className="device-info">
-                    <h3>{device.name}</h3>
-                    <p>{device.location}</p>
-                  </div>
-                  <div className="device-status">
-                    <span className={device.status}>{device.status === 'active' ? 'ON' : 'OFF'}</span>
-                  </div>
+      <div className="device-grid">
+        {devices.length > 0 ? (
+          devices.map(device => (
+            <div key={device.id} className="device-card">
+              <div className="device-header">
+                <div className="device-icon">
+                  <i className={deviceTypeIcons[device.type] || 'fas fa-plug'}></i>
                 </div>
-                
-                <div className="device-control-panel">
-                  <label className="toggle-switch">
-                    <input
-                      type="checkbox"
-                      checked={device.status === 'active'}
+                <div className="device-info">
+                  <h3>{device.name}</h3>
+                  <p>{device.location}</p>
+                </div>
+                <div className="device-status">
+                  <span className={device.status}>{device.status === 'active' ? 'ON' : 'OFF'}</span>
+                </div>
+              </div>
+              
+              <div className="device-control-panel">
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={device.status === 'active'}
                       onChange={() => handleToggleDevice(device.id, device.type)}
                       disabled={isToggling[device.id]}
-                    />
-                    <span className="toggle-slider"></span>
-                  </label>
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
                   {isToggling[device.id] && (
                     <span className="toggle-indicator">
                       <i className="fas fa-sync fa-spin"></i>
                     </span>
                   )}
-                </div>
               </div>
-            ))
-          ) : (
-            <div className="no-devices">No devices found.</div>
-          )}
+            </div>
+          ))
+        ) : (
+          <div className="no-devices">No devices found.</div>
+        )}
         </div>
       </div>
     </div>
