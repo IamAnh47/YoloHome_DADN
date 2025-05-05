@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, 
   ResponsiveContainer, AreaChart, Area
@@ -12,18 +12,7 @@ const SensorHistoryCharts = () => {
   const [humidityData, setHumidityData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    loadChartData();
-    
-    // Set up auto-refresh interval for live data
-    const refreshInterval = setInterval(() => {
-      loadChartData();
-    }, 60000); // Refresh every minute for historical data
-    
-    return () => clearInterval(refreshInterval);
-  }, [timeRange, loadChartData]);
-
-  const loadChartData = async () => {
+  const loadChartData = useCallback(async () => {
     setIsLoading(true);
     try {
       // Get temperature and humidity history for the selected time range
@@ -37,7 +26,18 @@ const SensorHistoryCharts = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [timeRange]);
+
+  useEffect(() => {
+    loadChartData();
+    
+    // Set up auto-refresh interval for live data
+    const refreshInterval = setInterval(() => {
+      loadChartData();
+    }, 60000); // Refresh every minute for historical data
+    
+    return () => clearInterval(refreshInterval);
+  }, [loadChartData]);
 
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return '';

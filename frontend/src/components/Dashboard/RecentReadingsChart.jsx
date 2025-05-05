@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import SensorController from '../../controllers/SensorController';
 import './SensorChart.css';
@@ -7,18 +7,7 @@ const RecentReadingsChart = ({ limit = 10 }) => {
   const [chartData, setChartData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    loadChartData();
-    
-    // Set up auto-refresh interval (every 5 seconds)
-    const refreshInterval = setInterval(() => {
-      loadChartData();
-    }, 5000);
-    
-    return () => clearInterval(refreshInterval);
-  }, [loadChartData]);
-
-  const loadChartData = async () => {
+  const loadChartData = useCallback(async () => {
     setIsLoading(true);
     try {
       // Get temperature and humidity history for the day
@@ -45,7 +34,18 @@ const RecentReadingsChart = ({ limit = 10 }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [limit]);
+
+  useEffect(() => {
+    loadChartData();
+    
+    // Set up auto-refresh interval (every 5 seconds)
+    const refreshInterval = setInterval(() => {
+      loadChartData();
+    }, 5000);
+    
+    return () => clearInterval(refreshInterval);
+  }, [loadChartData]);
 
   const formatTime = (timestamp) => {
     if (!timestamp) return '';
