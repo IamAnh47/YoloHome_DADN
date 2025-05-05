@@ -27,7 +27,7 @@ exports.getRecentAlerts = async (req, res, next) => {
   try {
     const limit = req.query.limit ? parseInt(req.query.limit) : 10;
     
-    // Get the most recent alerts
+    // Get recent alerts
     const alerts = await AlertModel.getRecentAlerts(limit);
     
     res.status(200).json({

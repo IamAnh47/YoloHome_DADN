@@ -1,25 +1,27 @@
 const express = require('express');
 const router = express.Router();
 const alertController = require('../controllers/alertController');
-const authMiddleware = require('../middleware/authMiddleware');
+const { protect } = require('../middleware/authMiddleware');
 
-// Protect all routes
-router.use(authMiddleware.protect);
+// Apply auth middleware
+router.use(protect);
+
+// Get all alerts
+router.get('/', alertController.getAllAlerts);
 
 // Get recent alerts
 router.get('/recent', alertController.getRecentAlerts);
 
-// Resolve all alerts
-router.put('/resolve-all', alertController.resolveAllAlerts);
+// Get specific alert
+router.get('/:id', alertController.getAlertById);
 
-// Alert CRUD routes
-router.route('/')
-  .get(alertController.getAllAlerts)
-  .post(alertController.createAlert);
+// Create new alert
+router.post('/', alertController.createAlert);
 
-router.route('/:id')
-  .get(alertController.getAlert)
-  .put(alertController.updateAlertStatus)
-  .delete(alertController.deleteAlert);
+// Update alert status
+router.put('/:id', alertController.updateAlertStatus);
+
+// Delete alert
+router.delete('/:id', alertController.deleteAlert);
 
 module.exports = router;

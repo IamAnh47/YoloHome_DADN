@@ -5,7 +5,8 @@ class SensorController {
   static cache = {
     readings: null,
     history: {},
-    alerts: []
+    alerts: [],
+    lastAlertCheck: null
   };
   
   // Cached data timestamps
@@ -333,6 +334,35 @@ class SensorController {
         count: 0,
         error: error.message
       };
+    }
+  }
+
+  /**
+   * Kiểm tra cảnh báo mới, phương thức này được gọi định kỳ
+   * @returns {Promise<Array>} - Danh sách thông báo mới
+   */
+  static async checkNewAlerts() {
+    try {
+      const timestamp = this.cache.lastAlertCheck || Date.now() - 120000; // 2 phút trước nếu chưa có kiểm tra
+      this.cache.lastAlertCheck = Date.now();
+      
+      // Tìm các cảnh báo mới từ 1 phút trước
+      const oneMinuteAgo = new Date();
+      oneMinuteAgo.setMinutes(oneMinuteAgo.getMinutes() - 1);
+      
+      // Lấy cảnh báo gần đây nhất
+      const alerts = await this.getRecentAlerts(true);
+      
+      // Lọc ra các cảnh báo mới trong 1 phút vừa qua
+      const newAlerts = alerts.filter(alert => {
+        const alertTime = new Date(alert.timestamp);
+        return alertTime > oneMinuteAgo;
+      });
+      
+      return newAlerts;
+    } catch (error) {
+      console.error('Error checking new alerts:', error);
+      return [];
     }
   }
 }

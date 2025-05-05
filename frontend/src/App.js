@@ -15,6 +15,8 @@ import SensorsPage from './components/Sensors/SensorsPage';
 import Header from './components/common/Header';
 import Sidebar from './components/common/Sidebar';
 import Footer from './components/common/Footer';
+import ToastContainer from './components/UI/ToastContainer';
+import alertService from './services/alertService';
 
 // Create authentication context
 export const AuthContext = createContext(null);
@@ -50,6 +52,7 @@ function App() {
     <Router>
         <AppContent />
       </Router>
+      <ToastContainer />
     </AuthContext.Provider>
   );
 }
@@ -94,6 +97,20 @@ function LoginPage() {
 
 function AuthenticatedLayout() {
   const { handleLogout } = React.useContext(AuthContext);
+  
+  // Thiết lập cơ chế kiểm tra cảnh báo định kỳ
+  useEffect(() => {
+    // Kiểm tra cảnh báo ngay khi component được mount
+    alertService.checkAndNotifyNewAlerts();
+    
+    // Thiết lập interval kiểm tra mỗi 60 giây
+    const intervalId = setInterval(() => {
+      alertService.checkAndNotifyNewAlerts();
+    }, 60000);
+    
+    // Dọn dẹp khi component unmount
+    return () => clearInterval(intervalId);
+  }, []);
   
   return (
               <div className="app-container">

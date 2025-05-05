@@ -1,0 +1,145 @@
+.toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 350px;
+  background-color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  display: flex;
+  align-items: flex-start;
+  padding: 16px;
+  z-index: 9999;
+  animation: slide-in 0.3s ease;
+  overflow: hidden;
+}
+
+.toast::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 100%;
+}
+
+.toast.toast-success {
+  border-left: 6px solid #52c41a;
+}
+
+.toast.toast-success .toast-icon {
+  color: #52c41a;
+}
+
+.toast.toast-error, .toast.toast-danger {
+  border-left: 6px solid #f5222d;
+}
+
+.toast.toast-error .toast-icon, .toast.toast-danger .toast-icon {
+  color: #f5222d;
+}
+
+.toast.toast-warning {
+  border-left: 6px solid #faad14;
+}
+
+.toast.toast-warning .toast-icon {
+  color: #faad14;
+}
+
+.toast.toast-info {
+  border-left: 6px solid #1890ff;
+}
+
+.toast.toast-info .toast-icon {
+  color: #1890ff;
+}
+
+.toast-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: 18px;
+  margin-right: 12px;
+}
+
+.toast-content {
+  flex: 1;
+}
+
+.toast-content p {
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+}
+
+.toast-close {
+  background: transparent;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px;
+  margin-left: 12px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.toast-close:hover {
+  opacity: 1;
+}
+
+.toast.show {
+  animation: slide-in 0.3s ease forwards;
+}
+
+.toast.hide {
+  animation: slide-out 0.3s ease forwards;
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-out {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Đảm bảo hiển thị nhiều thông báo cùng lúc */
+.toast:nth-child(1) {
+  bottom: 30px;
+}
+
+.toast:nth-child(2) {
+  bottom: 100px;
+}
+
+.toast:nth-child(3) {
+  bottom: 170px;
+}
+
+.toast:nth-child(4) {
+  bottom: 240px;
+}
+
+.toast:nth-child(5) {
+  bottom: 310px;
+} 

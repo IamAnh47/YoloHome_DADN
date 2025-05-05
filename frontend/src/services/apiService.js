@@ -20,7 +20,7 @@ const apiService = axios.create({
 // Request interceptor to add authorization header
 apiService.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     const timestamp = new Date().toLocaleTimeString();
     
     console.log('%c API Request:', 'color: blue', {
@@ -66,7 +66,8 @@ apiService.interceptors.response.use(
     
     // Handle unauthorized errors (401)
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem('token');
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
       window.location.href = '/login';
       return Promise.reject({
         success: false,
