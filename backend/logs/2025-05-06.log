@@ -3381,6 +3381,7 @@
 [2025-05-06T08:56:07.172Z] [INFO] Device sync from Adafruit IO completed
 [2025-05-06T08:56:07.172Z] [INFO] Light status updated in database: active
 [2025-05-06T08:56:11.571Z] [INFO] Syncing device states from Adafruit IO feeds
+<<<<<<< HEAD
 [2025-05-06T09:31:06.899Z] [INFO] MQTT Service is disabled (MOCK version)
 [2025-05-06T09:31:07.026Z] [WARN] Adafruit IO service is disabled (missing API key)
 [2025-05-06T09:31:07.345Z] [INFO] MQTT connect method called (DISABLED)
@@ -7255,3 +7256,10 @@
 [2025-05-06T10:15:43.951Z] [INFO] Light feed value: 1, status: active
 [2025-05-06T10:15:43.955Z] [INFO] Light status updated in database: active
 [2025-05-06T10:15:43.955Z] [INFO] Device sync from Adafruit IO completed
+=======
+[2025-05-06T10:14:05.396Z] [INFO] MQTT Service is disabled (MOCK version)
+[2025-05-06T10:14:05.696Z] [WARN] Adafruit IO service is disabled (missing API key)
+[2025-05-06T10:14:06.567Z] [INFO] MQTT connect method called (DISABLED)
+[2025-05-06T10:14:11.589Z] [INFO] Adafruit IO sync skipped (DISABLED)
+[2025-05-06T10:14:16.587Z] [INFO] Adafruit IO sync skipped (DISABLED)
+>>>>>>> 1a4fdb83d45ba8069caed66d8e4b29ca40c59fa7
