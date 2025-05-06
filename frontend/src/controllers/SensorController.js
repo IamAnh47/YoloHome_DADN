@@ -343,7 +343,6 @@ class SensorController {
    */
   static async checkNewAlerts() {
     try {
-      const timestamp = this.cache.lastAlertCheck || Date.now() - 120000; // 2 phút trước nếu chưa có kiểm tra
       this.cache.lastAlertCheck = Date.now();
       
       // Tìm các cảnh báo mới từ 1 phút trước

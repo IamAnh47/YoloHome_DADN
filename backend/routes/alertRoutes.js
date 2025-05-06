@@ -13,7 +13,7 @@ router.get('/', alertController.getAllAlerts);
 router.get('/recent', alertController.getRecentAlerts);
 
 // Get specific alert
-router.get('/:id', alertController.getAlertById);
+router.get('/:id', alertController.getAlert);
 
 // Create new alert
 router.post('/', alertController.createAlert);
