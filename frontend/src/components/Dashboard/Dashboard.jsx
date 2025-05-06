@@ -3,6 +3,7 @@ import SystemController from '../../controllers/SystemController';
 import SensorController from '../../controllers/SensorController';
 import AdafruitFeedChart from './AdafruitFeedChart';
 import SensorAverageCard from './SensorAverageCard';
+import DeviceScheduleDisplay from './DeviceScheduleDisplay';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -165,6 +166,9 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+      
+      {/* Device Schedules Section */}
+      <DeviceScheduleDisplay />
       
       {/* Sensor Charts Section */}
       <div className="sensor-charts-section">

@@ -1,0 +1,133 @@
+.device-schedule-display {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.device-schedule-display h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c3e50;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.schedule-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.schedule-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.schedule-item:last-child {
+  border-bottom: none;
+}
+
+.schedule-device-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #3498db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+  color: white;
+}
+
+.fa-lightbulb {
+  color: #fff;
+}
+
+.fa-fan {
+  color: #fff;
+}
+
+.schedule-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.schedule-title {
+  font-weight: 500;
+  margin-bottom: 5px;
+  color: #2c3e50;
+}
+
+.schedule-time {
+  color: #7f8c8d;
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+
+.schedule-status {
+  display: inline-block;
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background-color: #f8f9fa;
+  color: #6c757d;
+  width: fit-content;
+}
+
+.schedule-status.chờ-thực-hiện {
+  background-color: #e8f4fd;
+  color: #3498db;
+}
+
+.schedule-status.đang-hoạt-động {
+  background-color: #e3fcef;
+  color: #27ae60;
+}
+
+.schedule-status.đếm-ngược {
+  background-color: #fff3cd;
+  color: #fd7e14;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+.schedule-footer {
+  margin-top: 15px;
+  text-align: right;
+}
+
+.view-all-schedules {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.view-all-schedules:hover {
+  text-decoration: underline;
+}
+
+.no-schedules {
+  text-align: center;
+  padding: 20px;
+  color: #7f8c8d;
+  font-style: italic;
+}
+
+.loading {
+  text-align: center;
+  padding: 20px;
+  color: #7f8c8d;
+} 

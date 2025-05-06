@@ -22,7 +22,8 @@ const DeviceScheduling = ({ deviceType, deviceName }) => {
   });
   const [countdownActive, setCountdownActive] = useState(false);
   const [remainingTime, setRemainingTime] = useState(0);
-  // Store active countdown info
+  // Add state for active countdown to display in list
+  // eslint-disable-next-line no-unused-vars
   const [activeCountdown, setActiveCountdown] = useState(null);
   
   // Format datetime-local value to ISO string for API
