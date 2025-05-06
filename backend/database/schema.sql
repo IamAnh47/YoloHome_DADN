@@ -11,6 +11,7 @@ DROP TABLE IF EXISTS sensor_data;
 DROP TABLE IF EXISTS sensor;
 DROP TABLE IF EXISTS device;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS device_schedule;
 
 -- Table Users : Save user information
 CREATE TABLE users (
@@ -83,6 +84,20 @@ CREATE TABLE alert_config (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
   CONSTRAINT unique_user_sensor_type UNIQUE (user_id, sensor_type)
+);
+
+-- Table DeviceSchedule : Scheduling for devices
+CREATE TABLE device_schedule (
+  schedule_id SERIAL PRIMARY KEY,
+  device_id INT NOT NULL,
+  schedule_type VARCHAR(10) CHECK (schedule_type IN ('once', 'range')) NOT NULL,
+  action VARCHAR(10) CHECK (action IN ('on', 'off', 'range')) NOT NULL,
+  start_time TIMESTAMP NOT NULL,
+  end_time TIMESTAMP,
+  executed BOOLEAN DEFAULT FALSE,
+  created_by INT REFERENCES users(user_id),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (device_id) REFERENCES device(device_id) ON DELETE CASCADE
 );
 
 -- Table Alerts : Warning information

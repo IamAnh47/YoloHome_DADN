@@ -23,6 +23,23 @@ router.route('/')
 router.route('/stats')
   .get(deviceController.getDeviceStats);
 
+// Device scheduling routes
+router.route('/:deviceType/schedules')
+  .get(deviceController.getDeviceSchedules);
+
+router.route('/:deviceType/schedule')
+  .post(deviceController.scheduleDevice);
+
+router.route('/:deviceType/schedule-range')
+  .post(deviceController.scheduleDeviceRange);
+
+router.route('/schedules/:id')
+  .delete(deviceController.cancelSchedule);
+
+router.route('/schedules/execute')
+  .post(deviceController.executePendingSchedules);
+
+// Device specific routes
 router.route('/:id')
   .get(deviceController.getDevice)
   .put(deviceController.updateDevice)

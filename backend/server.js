@@ -7,6 +7,7 @@ const errorMiddleware = require('./middleware/errorMiddleware');
 const mqttService = require('./services/mqttService');
 const adafruitService = require('./services/adafruitService');
 const feedAlertService = require('./services/feedAlertService');
+const schedulerService = require('./services/schedulerService');
 const DeviceModel = require('./models/deviceModel');
 
 // Load environment variables
@@ -91,6 +92,10 @@ setInterval(async () => {
   console.log('Running feed alert threshold check...');
   await feedAlertService.checkFeedThresholds();
 }, 60000);
+
+// Start the scheduler service (check every 30 seconds)
+console.log('Starting device schedule service');
+schedulerService.start(30000);
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
