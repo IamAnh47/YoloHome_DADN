@@ -147,12 +147,16 @@ exports.getFeedDataAggregated = async (req, res, next) => {
         value = group.sum / group.count;
       }
       
+      // Find the item with the first timestamp
+      const firstItem = feedData.find(item => item.created_at === group.timestamps[0]);
+      const firstItemId = firstItem ? firstItem.id : null;
+      
       return {
         value: value,
         timestamp: intervalKey,
         feed: type,
         // Use first data point's ID
-        id: feedData.find(item => item.created_at === group.timestamps[0])?.id || null
+        id: firstItemId
       };
     });
     

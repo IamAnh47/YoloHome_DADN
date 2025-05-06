@@ -137,9 +137,20 @@ class AlertService {
         return;
       }
       
+      // Xác định device_id dựa trên loại cảnh báo
+      let deviceId = 1; // Default device ID
+      
+      if (alertType.includes('Temperature')) {
+        deviceId = 1; // ID của thiết bị nhiệt độ
+      } else if (alertType.includes('Humidity')) {
+        deviceId = 2; // ID của thiết bị độ ẩm
+      } else if (alertType.includes('Motion')) {
+        deviceId = 3; // ID của thiết bị chuyển động
+      }
+      
       // Tạo cảnh báo mới
       const alertData = {
-        device_id: null,
+        device_id: deviceId,
         sensor_id: sensorId,
         alert_type: alertType,
         amessage: message,
