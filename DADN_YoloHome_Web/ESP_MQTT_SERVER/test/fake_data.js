@@ -50,5 +50,5 @@ client.on('connect', () => {
     } catch (error) {
       console.error('Có lỗi khi gửi dữ liệu:', error);
     }
-  }, 3000); // Mn chỉnh timer để thay đổi thời gian send fake data
+  }, 10000); // Mn chỉnh timer để thay đổi thời gian send fake data
 });

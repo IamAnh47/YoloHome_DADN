@@ -129,7 +129,7 @@ async function fetchAllFeeds() {
 }
 
 // Timer, nên tăng lên nha vì ADA nó có giới hạn số request trên 1 thời gian nhất định, để tầm 1s là đẹp á
-setInterval(fetchAllFeeds, 3000);
+setInterval(fetchAllFeeds, 6000);
 
 app.use(errorHandler);
 
