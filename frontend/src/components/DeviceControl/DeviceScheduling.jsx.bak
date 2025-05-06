@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import DeviceController from '../../controllers/DeviceController';
 import notificationService from '../../services/notificationService';
 import './DeviceScheduling.css';
@@ -6,7 +6,7 @@ import './DeviceScheduling.css';
 const DeviceScheduling = ({ deviceType, deviceName }) => {
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [scheduleType, setScheduleType] = useState('single'); // 'single', 'range', or 'countdown'
+  const [scheduleType, setScheduleType] = useState('single'); // 'single' or 'range'
   const [singleSchedule, setSingleSchedule] = useState({
     action: 'on',
     time: ''
@@ -15,12 +15,6 @@ const DeviceScheduling = ({ deviceType, deviceName }) => {
     startTime: '',
     endTime: ''
   });
-  const [countdownSchedule, setCountdownSchedule] = useState({
-    action: 'off',
-    seconds: 60
-  });
-  const [countdownActive, setCountdownActive] = useState(false);
-  const [remainingTime, setRemainingTime] = useState(0);
   
   // Format datetime-local value to ISO string for API
   const formatDateTimeForApi = (dateTimeValue) => {
@@ -40,8 +34,12 @@ const DeviceScheduling = ({ deviceType, deviceName }) => {
     });
   };
   
-  // Load schedules function wrapped in useCallback to avoid dependency issues
-  const loadSchedules = useCallback(async () => {
+  // Load schedules when component mounts
+  useEffect(() => {
+    loadSchedules();
+  }, [deviceType]); // eslint-disable-line react-hooks/exhaustive-deps
+  
+  const loadSchedules = async () => {
     setLoading(true);
     try {
       const deviceSchedules = await DeviceController.getDeviceSchedules(deviceType);
@@ -52,12 +50,7 @@ const DeviceScheduling = ({ deviceType, deviceName }) => {
     } finally {
       setLoading(false);
     }
-  }, [deviceType, deviceName]);
-  
-  // Load schedules when component mounts
-  useEffect(() => {
-    loadSchedules();
-  }, [loadSchedules]);
+  };
   
   const handleSingleScheduleChange = (e) => {
     const { name, value } = e.target;
@@ -74,21 +67,6 @@ const DeviceScheduling = ({ deviceType, deviceName }) => {
       [name]: value
     }));
   };
-
-  const handleCountdownScheduleChange = (e) => {
-    const { name, value } = e.target;
-    setCountdownSchedule(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const setCountdownPreset = (seconds) => {
-    setCountdownSchedule(prev => ({
-      ...prev,
-      seconds
-    }));
-  };
   
   const validateSchedule = () => {
     if (scheduleType === 'single') {
@@ -102,7 +80,7 @@ const DeviceScheduling = ({ deviceType, deviceName }) => {
         notificationService.showAlert('Thời gian hẹn giờ phải ở tương lai', 'warning');
         return false;
       }
-    } else if (scheduleType === 'range') {
+    } else {
       if (!rangeSchedule.startTime || !rangeSchedule.endTime) {
         notificationService.showAlert('Vui lòng chọn thời gian bắt đầu và kết thúc', 'warning');
         return false;
@@ -119,59 +97,9 @@ const DeviceScheduling = ({ deviceType, deviceName }) => {
         notificationService.showAlert('Thời gian bắt đầu phải ở tương lai', 'warning');
         return false;
       }
-    } else if (scheduleType === 'countdown') {
-      if (!countdownSchedule.seconds || countdownSchedule.seconds <= 0) {
-        notificationService.showAlert('Vui lòng nhập thời gian hợp lệ', 'warning');
-        return false;
-      }
     }
     
     return true;
-  };
-  
-  const startCountdown = async () => {
-    if (countdownSchedule.seconds <= 0) {
-      notificationService.showAlert('Vui lòng nhập thời gian hợp lệ', 'warning');
-      return;
-    }
-
-    setCountdownActive(true);
-    setRemainingTime(countdownSchedule.seconds);
-
-    // Create a future timestamp for the scheduled action
-    const actionTime = new Date(Date.now() + countdownSchedule.seconds * 1000).toISOString();
-
-    try {
-      await DeviceController.scheduleDevice(
-        deviceType,
-        countdownSchedule.action,
-        actionTime
-      );
-      notificationService.showAlert(
-        `Hẹn giờ ${countdownSchedule.action === 'on' ? 'bật' : 'tắt'} ${deviceName} sau ${countdownSchedule.seconds} giây`,
-        'success'
-      );
-      
-      // Start the countdown
-      const timer = setInterval(() => {
-        setRemainingTime(prev => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            setCountdownActive(false);
-            loadSchedules();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      // Cleanup interval on component unmount
-      return () => clearInterval(timer);
-    } catch (error) {
-      console.error('Error creating countdown:', error);
-      notificationService.showAlert(`Không thể tạo hẹn giờ: ${error.message}`, 'error');
-      setCountdownActive(false);
-    }
   };
   
   const handleCreateSchedule = async () => {
@@ -191,7 +119,7 @@ const DeviceScheduling = ({ deviceType, deviceName }) => {
         );
         // Reset form
         setSingleSchedule({ action: 'on', time: '' });
-      } else if (scheduleType === 'range') {
+      } else {
         await DeviceController.scheduleDeviceRange(
           deviceType,
           formatDateTimeForApi(rangeSchedule.startTime),
@@ -265,13 +193,6 @@ const DeviceScheduling = ({ deviceType, deviceName }) => {
     }
     return schedule.status;
   };
-
-  // Format seconds to mm:ss
-  const formatSeconds = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
   
   return (
     <div className="device-scheduling">
@@ -290,12 +211,6 @@ const DeviceScheduling = ({ deviceType, deviceName }) => {
             onClick={() => setScheduleType('range')}
           >
             Hẹn giờ hoạt động
-          </button>
-          <button 
-            className={`schedule-type-btn ${scheduleType === 'countdown' ? 'active' : ''}`}
-            onClick={() => setScheduleType('countdown')}
-          >
-            Hẹn giờ đếm ngược
           </button>
         </div>
         
@@ -322,16 +237,8 @@ const DeviceScheduling = ({ deviceType, deviceName }) => {
                 onChange={handleSingleScheduleChange}
               />
             </div>
-            
-            <button 
-              className="create-schedule-btn"
-              onClick={handleCreateSchedule}
-              disabled={loading}
-            >
-              {loading ? 'Đang xử lý...' : 'Tạo lịch trình'}
-            </button>
           </div>
-        ) : scheduleType === 'range' ? (
+        ) : (
           <div className="range-schedule-form">
             <div className="form-group">
               <label>Thời gian bắt đầu:</label>
@@ -352,90 +259,16 @@ const DeviceScheduling = ({ deviceType, deviceName }) => {
                 onChange={handleRangeScheduleChange}
               />
             </div>
-            
-            <button 
-              className="create-schedule-btn"
-              onClick={handleCreateSchedule}
-              disabled={loading}
-            >
-              {loading ? 'Đang xử lý...' : 'Tạo lịch trình'}
-            </button>
-          </div>
-        ) : (
-          <div className="countdown-schedule-form">
-            <div className="form-group">
-              <label>Hành động:</label>
-              <select 
-                name="action"
-                value={countdownSchedule.action}
-                onChange={handleCountdownScheduleChange}
-              >
-                <option value="on">Bật</option>
-                <option value="off">Tắt</option>
-              </select>
-            </div>
-            
-            <div className="form-group">
-              <label>Thời gian (giây):</label>
-              <input 
-                type="number"
-                name="seconds"
-                value={countdownSchedule.seconds}
-                onChange={handleCountdownScheduleChange}
-                disabled={countdownActive}
-                min="1"
-              />
-              
-              <div className="countdown-presets">
-                <button 
-                  onClick={() => setCountdownPreset(10)}
-                  disabled={countdownActive}
-                  className="preset-btn"
-                >
-                  10s
-                </button>
-                <button 
-                  onClick={() => setCountdownPreset(30)}
-                  disabled={countdownActive}
-                  className="preset-btn"
-                >
-                  30s
-                </button>
-                <button 
-                  onClick={() => setCountdownPreset(60)}
-                  disabled={countdownActive}
-                  className="preset-btn"
-                >
-                  1m
-                </button>
-                <button 
-                  onClick={() => setCountdownPreset(300)}
-                  disabled={countdownActive}
-                  className="preset-btn"
-                >
-                  5m
-                </button>
-              </div>
-            </div>
-            
-            {countdownActive ? (
-              <div className="countdown-display">
-                <div className="countdown-time">{formatSeconds(remainingTime)}</div>
-                <div className="countdown-label">
-                  {countdownSchedule.action === 'on' ? 'Bật' : 'Tắt'} sau
-                </div>
-              </div>
-            ) : (
-              <button 
-                className="create-schedule-btn"
-                onClick={startCountdown}
-                disabled={loading}
-              >
-                {loading ? 'Đang xử lý...' : 'Bắt đầu đếm ngược'}
-              </button>
-            )}
           </div>
         )}
+        
+        <button 
+          className="create-schedule-btn"
+          onClick={handleCreateSchedule}
+          disabled={loading}
+        >
+          {loading ? 'Đang xử lý...' : 'Tạo lịch trình'}
+        </button>
       </div>
       
       <div className="schedules-list">

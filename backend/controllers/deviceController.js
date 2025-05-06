@@ -1,6 +1,7 @@
 const DeviceModel = require('../models/deviceModel');
 const mqttService = require('../services/mqttService');
 const adafruitService = require('../services/adafruitService');
+const DeviceScheduleModel = require('../models/deviceScheduleModel');
 
 // @desc    Get all devices
 // @route   GET /api/devices
@@ -659,3 +660,293 @@ exports.getDeviceStatus = async (req, res, next) => {
       next(error);
     }
   };
+
+// Device scheduling controllers
+
+// @desc    Get all schedules for a device type
+// @route   GET /api/devices/:deviceType/schedules
+// @access  Private
+exports.getDeviceSchedules = async (req, res, next) => {
+  try {
+    const { deviceType } = req.params;
+    
+    // Validate device type
+    if (!deviceType) {
+      return res.status(400).json({
+        success: false,
+        message: 'Device type is required'
+      });
+    }
+    
+    const schedules = await DeviceScheduleModel.getSchedulesByDeviceType(deviceType);
+    
+    res.status(200).json({
+      success: true,
+      count: schedules.length,
+      data: schedules
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Create a one-time schedule for a device
+// @route   POST /api/devices/:deviceType/schedule
+// @access  Private
+exports.scheduleDevice = async (req, res, next) => {
+  try {
+    const { deviceType } = req.params;
+    const { action, scheduledTime } = req.body;
+    
+    // Validate input
+    if (!deviceType || !action || !scheduledTime) {
+      return res.status(400).json({
+        success: false,
+        message: 'Device type, action, and scheduledTime are required'
+      });
+    }
+    
+    // Validate action
+    if (action !== 'on' && action !== 'off') {
+      return res.status(400).json({
+        success: false,
+        message: 'Action must be either "on" or "off"'
+      });
+    }
+    
+    // Find the device
+    const device = await DeviceModel.findDeviceByType(deviceType);
+    
+    if (!device) {
+      return res.status(404).json({
+        success: false,
+        message: `No device found with type: ${deviceType}`
+      });
+    }
+    
+    // Create schedule
+    const schedule = await DeviceScheduleModel.createSchedule({
+      deviceId: device.device_id,
+      scheduleType: 'once',
+      action,
+      startTime: new Date(scheduledTime),
+      createdBy: req.user ? req.user.id : 1 // Default to admin user if not authenticated
+    });
+    
+    res.status(201).json({
+      success: true,
+      data: schedule
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Create a range schedule for a device (turn on at start, off at end)
+// @route   POST /api/devices/:deviceType/schedule-range
+// @access  Private
+exports.scheduleDeviceRange = async (req, res, next) => {
+  try {
+    const { deviceType } = req.params;
+    const { startTime, endTime } = req.body;
+    
+    // Validate input
+    if (!deviceType || !startTime || !endTime) {
+      return res.status(400).json({
+        success: false,
+        message: 'Device type, startTime, and endTime are required'
+      });
+    }
+    
+    // Find the device
+    const device = await DeviceModel.findDeviceByType(deviceType);
+    
+    if (!device) {
+      return res.status(404).json({
+        success: false,
+        message: `No device found with type: ${deviceType}`
+      });
+    }
+    
+    // Create schedule
+    const schedule = await DeviceScheduleModel.createSchedule({
+      deviceId: device.device_id,
+      scheduleType: 'range',
+      action: 'range',
+      startTime: new Date(startTime),
+      endTime: new Date(endTime),
+      createdBy: req.user ? req.user.id : 1 // Default to admin user if not authenticated
+    });
+    
+    res.status(201).json({
+      success: true,
+      data: schedule
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Cancel a schedule
+// @route   DELETE /api/devices/schedules/:id
+// @access  Private
+exports.cancelSchedule = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    
+    // Find the schedule first
+    const schedule = await DeviceScheduleModel.getScheduleById(id);
+    
+    if (!schedule) {
+      return res.status(404).json({
+        success: false,
+        message: `No schedule found with ID: ${id}`
+      });
+    }
+    
+    // Delete the schedule
+    const success = await DeviceScheduleModel.deleteSchedule(id);
+    
+    res.status(200).json({
+      success: true,
+      data: { scheduleId: id }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Execute pending schedules - This would be called by a cron job
+// @route   POST /api/devices/schedules/execute
+// @access  Private (internal)
+exports.executePendingSchedules = async (req, res, next) => {
+  try {
+    // Get pending schedules
+    const pendingSchedules = await DeviceScheduleModel.getPendingSchedules();
+    
+    if (pendingSchedules.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: 'No pending schedules to execute',
+        data: []
+      });
+    }
+    
+    const executedSchedules = [];
+    
+    // Process each pending schedule
+    for (const schedule of pendingSchedules) {
+      try {
+        // Different handling based on schedule type
+        if (schedule.schedule_type === 'once') {
+          // Execute the one-time schedule
+          const action = schedule.action === 'on' ? 'ON' : 'OFF';
+          const status = schedule.action === 'on' ? 'active' : 'inactive';
+          
+          // Update device status
+          await DeviceModel.updateDevice(schedule.device_id, { status });
+          
+          // Send MQTT message
+          const topic = `yolohome/devices/${schedule.device_id}/control`;
+          const message = JSON.stringify({
+            device_id: schedule.device_id,
+            action,
+            status,
+            timestamp: new Date().toISOString(),
+            source: 'scheduler'
+          });
+          
+          mqttService.publishMessage(topic, message);
+          
+          // Execute based on device type
+          if (schedule.device_type === 'fan') {
+            if (schedule.action === 'on') {
+              await adafruitService.turnOnFan();
+            } else {
+              await adafruitService.turnOffFan();
+            }
+          } else if (schedule.device_type === 'light') {
+            if (schedule.action === 'on') {
+              await adafruitService.turnOnLight();
+            } else {
+              await adafruitService.turnOffLight();
+            }
+          }
+        } else if (schedule.schedule_type === 'range') {
+          // For range type schedules, check if we're at start or end time
+          const now = new Date();
+          const startTime = new Date(schedule.start_time);
+          const endTime = new Date(schedule.end_time);
+          
+          // If we're close to the start time - turn ON
+          if (Math.abs(now - startTime) < 60000) { // Within 1 minute
+            // Turn ON
+            await DeviceModel.updateDevice(schedule.device_id, { status: 'active' });
+            
+            // Send MQTT message
+            const topic = `yolohome/devices/${schedule.device_id}/control`;
+            const message = JSON.stringify({
+              device_id: schedule.device_id,
+              action: 'ON',
+              status: 'active',
+              timestamp: new Date().toISOString(),
+              source: 'scheduler'
+            });
+            
+            mqttService.publishMessage(topic, message);
+            
+            // Execute based on device type
+            if (schedule.device_type === 'fan') {
+              await adafruitService.turnOnFan();
+            } else if (schedule.device_type === 'light') {
+              await adafruitService.turnOnLight();
+            }
+            
+            // Don't mark as executed yet since we have the end time
+            continue;
+          }
+          
+          // If we're close to the end time - turn OFF
+          if (Math.abs(now - endTime) < 60000) { // Within 1 minute
+            // Turn OFF
+            await DeviceModel.updateDevice(schedule.device_id, { status: 'inactive' });
+            
+            // Send MQTT message
+            const topic = `yolohome/devices/${schedule.device_id}/control`;
+            const message = JSON.stringify({
+              device_id: schedule.device_id,
+              action: 'OFF',
+              status: 'inactive',
+              timestamp: new Date().toISOString(),
+              source: 'scheduler'
+            });
+            
+            mqttService.publishMessage(topic, message);
+            
+            // Execute based on device type
+            if (schedule.device_type === 'fan') {
+              await adafruitService.turnOffFan();
+            } else if (schedule.device_type === 'light') {
+              await adafruitService.turnOffLight();
+            }
+          }
+        }
+        
+        // Mark schedule as executed
+        await DeviceScheduleModel.markScheduleAsExecuted(schedule.schedule_id);
+        executedSchedules.push(schedule);
+      } catch (scheduleError) {
+        console.error(`Error executing schedule ${schedule.schedule_id}:`, scheduleError);
+        // Continue with other schedules even if one fails
+      }
+    }
+    
+    res.status(200).json({
+      success: true,
+      count: executedSchedules.length,
+      data: executedSchedules
+    });
+  } catch (error) {
+    next(error);
+  }
+};

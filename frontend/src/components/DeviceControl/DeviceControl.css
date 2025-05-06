@@ -1,13 +1,13 @@
 .device-control-container {
-  padding: 20px;
-}
-
-.page-header {
+    padding: 20px;
+  }
+  
+  .page-header {
   margin-bottom: 20px;
-}
-
-.page-header h1 {
-  margin: 0;
+  }
+  
+  .page-header h1 {
+    margin: 0;
   color: #333;
 }
 
@@ -21,22 +21,22 @@
 
 .registered-devices h2 {
   margin-top: 0;
-  margin-bottom: 20px;
+    margin-bottom: 20px;
   font-size: 1.4rem;
   color: #333;
   border-bottom: 1px solid #eee;
   padding-bottom: 10px;
-}
-
-.device-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.device-card {
+  }
+  
+  .device-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  
+  .device-card {
   background-color: #f9f9f9;
-  border-radius: 8px;
+    border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   padding: 15px;
   transition: transform 0.2s, box-shadow 0.2s;
@@ -52,66 +52,66 @@
   transform: none;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
-}
-
-.device-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.device-icon {
+  }
+  
+  .device-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .device-icon {
   width: 45px;
   height: 45px;
-  border-radius: 50%;
+    border-radius: 50%;
   background-color: #eef;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   font-size: 1.3rem;
   color: #5567dd;
-  margin-right: 15px;
+    margin-right: 15px;
   flex-shrink: 0;
-}
-
-.device-info {
-  flex: 1;
-}
-
-.device-info h3 {
-  margin: 0 0 5px 0;
+  }
+  
+  .device-info {
+    flex: 1;
+  }
+  
+  .device-info h3 {
+    margin: 0 0 5px 0;
   font-size: 1.1rem;
   color: #333;
-}
-
-.device-info p {
-  margin: 0;
+  }
+  
+  .device-info p {
+    margin: 0;
   font-size: 0.9rem;
   color: #666;
-}
-
-.device-status {
+  }
+  
+  .device-status {
   margin-left: 15px;
-}
-
-.device-status span {
+  }
+  
+  .device-status span {
   font-size: 0.8rem;
   font-weight: bold;
-  padding: 4px 8px;
+    padding: 4px 8px;
   border-radius: 10px;
-}
-
-.device-status span.active {
+  }
+  
+  .device-status span.active {
   background-color: rgba(76, 175, 80, 0.2);
   color: #2e7d32;
-}
-
-.device-status span.inactive {
+  }
+  
+  .device-status span.inactive {
   background-color: rgba(158, 158, 158, 0.2);
   color: #616161;
-}
-
-.device-control-panel {
+  }
+  
+  .device-control-panel {
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -119,54 +119,54 @@
 }
 
 .toggle-container {
-  display: flex;
-  align-items: center;
-}
-
-.toggle-switch {
-  position: relative;
-  display: inline-block;
-  width: 50px;
-  height: 24px;
-}
-
-.toggle-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.toggle-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
+    display: flex;
+    align-items: center;
+  }
+  
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+  }
+  
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
   border-radius: 12px;
   transition: 0.3s;
-}
-
-.toggle-slider:before {
-  position: absolute;
-  content: "";
+  }
+  
+  .toggle-slider:before {
+    position: absolute;
+    content: "";
   height: 16px;
   width: 16px;
   left: 4px;
   bottom: 4px;
-  background-color: white;
-  border-radius: 50%;
+    background-color: white;
+    border-radius: 50%;
   transition: 0.3s;
-}
-
-input:checked + .toggle-slider {
+  }
+  
+  input:checked + .toggle-slider {
   background-color: #4CAF50;
-}
-
-input:checked + .toggle-slider:before {
-  transform: translateX(26px);
-}
+  }
+  
+  input:checked + .toggle-slider:before {
+    transform: translateX(26px);
+  }
 
 .error-message {
   background-color: #fff3f3;
@@ -176,17 +176,17 @@ input:checked + .toggle-slider:before {
   border-left: 4px solid #d32f2f;
   margin-bottom: 20px;
 }
-
-.no-devices {
+  
+  .no-devices {
   padding: 30px;
-  text-align: center;
+    text-align: center;
   color: #666;
   font-size: 1.1rem;
   background-color: #f9f9f9;
   border-radius: 8px;
-}
-
-.loading-indicator {
+  }
+  
+  .loading-indicator {
   padding: 30px;
   text-align: center;
   color: #666;
@@ -204,7 +204,7 @@ input:checked + .toggle-slider:before {
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  display: flex;
+    display: flex;
   align-items: center;
   gap: 6px;
   font-size: 0.9rem;
@@ -264,4 +264,4 @@ input:checked + .toggle-slider:before {
 /* Make the device card appear active while toggling */
 .device-card.toggling {
   box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
-}
+  }
