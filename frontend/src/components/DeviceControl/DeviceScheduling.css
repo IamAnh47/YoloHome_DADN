@@ -138,11 +138,51 @@
 }
 
 .active-schedule {
-  background-color: rgba(24, 144, 255, 0.05);
+  background-color: rgba(76, 175, 80, 0.1);
 }
 
-.inactive-schedule td {
-  color: #999;
+.inactive-schedule {
+  background-color: rgba(128, 128, 128, 0.1);
+}
+
+.countdown-time {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #e74c3c;
+}
+
+.countdown-label {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.countdown-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  margin: 10px 0;
+  background-color: rgba(231, 76, 60, 0.1);
+  border-radius: 5px;
+  border: 1px solid rgba(231, 76, 60, 0.2);
+}
+
+.schedules-table td .countdown-remaining {
+  font-weight: bold;
+  color: #e74c3c;
+}
+
+/* Add animation for the countdown */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+.countdown-time {
+  animation: pulse 1.5s infinite;
 }
 
 .cancel-schedule-btn {
@@ -183,4 +223,16 @@
   .schedules-table td:nth-child(3) {
     display: none;
   }
+}
+
+.countdown-remaining {
+  font-weight: bold;
+  color: #e74c3c;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
 } 

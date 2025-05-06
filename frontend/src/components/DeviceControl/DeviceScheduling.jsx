@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import DeviceController from '../../controllers/DeviceController';
 import notificationService from '../../services/notificationService';
+import CountdownStatus from './CountdownStatus';
 import './DeviceScheduling.css';
 
 const DeviceScheduling = ({ deviceType, deviceName }) => {
@@ -21,6 +22,8 @@ const DeviceScheduling = ({ deviceType, deviceName }) => {
   });
   const [countdownActive, setCountdownActive] = useState(false);
   const [remainingTime, setRemainingTime] = useState(0);
+  // Store active countdown info
+  const [activeCountdown, setActiveCountdown] = useState(null);
   
   // Format datetime-local value to ISO string for API
   const formatDateTimeForApi = (dateTimeValue) => {
@@ -140,25 +143,46 @@ const DeviceScheduling = ({ deviceType, deviceName }) => {
 
     // Create a future timestamp for the scheduled action
     const actionTime = new Date(Date.now() + countdownSchedule.seconds * 1000).toISOString();
+    const startTime = new Date().toISOString();
 
     try {
+      // Create local countdown object first
+      const newCountdown = {
+        id: 'countdown-' + Date.now(),
+        type: 'countdown',
+        action: countdownSchedule.action,
+        startTime: startTime,
+        scheduledTime: actionTime,
+        remainingSeconds: countdownSchedule.seconds,
+        device_type: deviceType
+      };
+      
+      // Add to schedules list immediately for visual feedback
+      setActiveCountdown(newCountdown);
+      setSchedules(prev => [newCountdown, ...prev]);
+      
+      // Then send to backend
       await DeviceController.scheduleDevice(
         deviceType,
         countdownSchedule.action,
         actionTime
       );
+      
       notificationService.showAlert(
         `Hẹn giờ ${countdownSchedule.action === 'on' ? 'bật' : 'tắt'} ${deviceName} sau ${countdownSchedule.seconds} giây`,
         'success'
       );
       
-      // Start the countdown
+      // Start the countdown timer
       const timer = setInterval(() => {
         setRemainingTime(prev => {
           if (prev <= 1) {
             clearInterval(timer);
             setCountdownActive(false);
-            loadSchedules();
+            setActiveCountdown(null);
+            
+            // Reload schedules to refresh the list after countdown completes
+            setTimeout(() => loadSchedules(), 1000);
             return 0;
           }
           return prev - 1;
@@ -171,6 +195,10 @@ const DeviceScheduling = ({ deviceType, deviceName }) => {
       console.error('Error creating countdown:', error);
       notificationService.showAlert(`Không thể tạo hẹn giờ: ${error.message}`, 'error');
       setCountdownActive(false);
+      setActiveCountdown(null);
+      
+      // Remove the local countdown from the list if API call fails
+      setSchedules(prev => prev.filter(s => s.id !== 'countdown-' + Date.now()));
     }
   };
   
@@ -218,13 +246,21 @@ const DeviceScheduling = ({ deviceType, deviceName }) => {
   const handleCancelSchedule = async (scheduleId) => {
     if (!window.confirm('Bạn có chắc chắn muốn hủy lịch trình này?')) return;
     
+    // Check if it's a local countdown schedule
+    if (String(scheduleId).startsWith('countdown-')) {
+      setActiveCountdown(null);
+      setCountdownActive(false);
+      setSchedules(prev => prev.filter(s => s.id !== scheduleId));
+      return;
+    }
+    
     setLoading(true);
     try {
       await DeviceController.cancelSchedule(scheduleId);
       notificationService.showAlert('Đã hủy lịch trình thành công', 'success');
       
       // Remove from local state
-      setSchedules(prev => prev.filter(s => s.id !== scheduleId));
+      setSchedules(prev => prev.filter(s => s.id !== scheduleId && s.schedule_id !== scheduleId));
     } catch (error) {
       console.error('Error canceling schedule:', error);
       notificationService.showAlert(`Không thể hủy lịch trình: ${error.message}`, 'error');
@@ -235,42 +271,94 @@ const DeviceScheduling = ({ deviceType, deviceName }) => {
   
   // Check if a schedule is expired/completed
   const isScheduleActive = (schedule) => {
-    if (schedule.status === 'completed' || schedule.status === 'canceled') {
+    // Always show countdown schedules as active
+    if (schedule.type === 'countdown') {
+      return true;
+    }
+    
+    if (schedule.status === 'completed' || schedule.status === 'canceled' || schedule.executed === true) {
       return false;
     }
     
-    if (schedule.type === 'single') {
-      return new Date(schedule.scheduledTime) > new Date();
+    if (schedule.type === 'single' || schedule.schedule_type === 'once') {
+      const time = schedule.scheduledTime || schedule.start_time;
+      return new Date(time) > new Date();
     } else {
-      return new Date(schedule.endTime) > new Date();
+      const endTime = schedule.endTime || schedule.end_time;
+      return new Date(endTime) > new Date();
     }
   };
   
   // Get status text based on schedule status and times
   const getScheduleStatusText = (schedule) => {
-    if (schedule.status === 'completed') return 'Đã hoàn thành';
+    // For countdown schedules
+    if (schedule.type === 'countdown') {
+      return (
+        <CountdownStatus 
+          initialSeconds={schedule.remainingSeconds} 
+          onComplete={() => {
+            // Remove this countdown from the list when complete
+            setSchedules(prevSchedules => 
+              prevSchedules.filter(s => s.id !== schedule.id)
+            );
+          }} 
+        />
+      );
+    }
+    
+    if (schedule.status === 'completed' || schedule.executed === true) return 'Đã hoàn thành';
     if (schedule.status === 'canceled') return 'Đã hủy';
-    if (schedule.status === 'pending') {
-      if (schedule.type === 'single') {
-        return new Date(schedule.scheduledTime) > new Date() ? 'Chờ thực hiện' : 'Đã hết hạn';
+    
+    if (schedule.type === 'single' || schedule.schedule_type === 'once') {
+      const time = schedule.scheduledTime || schedule.start_time;
+      return new Date(time) > new Date() ? 'Chờ thực hiện' : 'Đã hết hạn';
+    } else {
+      const startTime = schedule.startTime || schedule.start_time;
+      const endTime = schedule.endTime || schedule.end_time;
+      
+      if (new Date(endTime) < new Date()) {
+        return 'Đã hết hạn';
+      } else if (new Date(startTime) > new Date()) {
+        return 'Chờ thực hiện';
       } else {
-        if (new Date(schedule.endTime) < new Date()) {
-          return 'Đã hết hạn';
-        } else if (new Date(schedule.startTime) > new Date()) {
-          return 'Chờ thực hiện';
-        } else {
-          return 'Đang hoạt động';
-        }
+        return 'Đang hoạt động';
       }
     }
-    return schedule.status;
   };
 
   // Format seconds to mm:ss
   const formatSeconds = (seconds) => {
+    if (!seconds && seconds !== 0) return '00:00';
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+  
+  // Get scheduled time display from schedule object
+  const getScheduleTimeDisplay = (schedule) => {
+    // For countdown schedules
+    if (schedule.type === 'countdown') {
+      return (
+        <>
+          <div>Bắt đầu: {formatDateTimeForDisplay(schedule.startTime)}</div>
+          <div>Kết thúc: {formatDateTimeForDisplay(schedule.scheduledTime)}</div>
+        </>
+      );
+    }
+    
+    if (schedule.type === 'single' || schedule.schedule_type === 'once') {
+      const time = schedule.scheduledTime || schedule.start_time;
+      return formatDateTimeForDisplay(time);
+    } else {
+      const startTime = schedule.startTime || schedule.start_time;
+      const endTime = schedule.endTime || schedule.end_time;
+      return (
+        <>
+          <div>Bắt đầu: {formatDateTimeForDisplay(startTime)}</div>
+          <div>Kết thúc: {formatDateTimeForDisplay(endTime)}</div>
+        </>
+      );
+    }
   };
   
   return (
@@ -458,30 +546,25 @@ const DeviceScheduling = ({ deviceType, deviceName }) => {
             <tbody>
               {schedules.map(schedule => (
                 <tr 
-                  key={schedule.id}
+                  key={schedule.id || schedule.schedule_id}
                   className={isScheduleActive(schedule) ? 'active-schedule' : 'inactive-schedule'}
                 >
                   <td>
-                    {schedule.type === 'single' 
-                      ? `${schedule.action === 'on' ? 'Bật' : 'Tắt'} thiết bị` 
-                      : 'Khoảng thời gian'}
+                    {schedule.type === 'countdown' 
+                      ? `Đếm ngược ${schedule.action === 'on' ? 'bật' : 'tắt'}`
+                      : (schedule.type === 'single' || schedule.schedule_type === 'once')
+                        ? `${schedule.action === 'on' ? 'Bật' : 'Tắt'} thiết bị` 
+                        : 'Khoảng thời gian'}
                   </td>
                   <td>
-                    {schedule.type === 'single' 
-                      ? formatDateTimeForDisplay(schedule.scheduledTime)
-                      : (
-                        <>
-                          <div>Bắt đầu: {formatDateTimeForDisplay(schedule.startTime)}</div>
-                          <div>Kết thúc: {formatDateTimeForDisplay(schedule.endTime)}</div>
-                        </>
-                      )}
+                    {getScheduleTimeDisplay(schedule)}
                   </td>
                   <td>{getScheduleStatusText(schedule)}</td>
                   <td>
                     {isScheduleActive(schedule) && (
                       <button 
                         className="cancel-schedule-btn"
-                        onClick={() => handleCancelSchedule(schedule.id)}
+                        onClick={() => handleCancelSchedule(schedule.id || schedule.schedule_id)}
                         disabled={loading}
                       >
                         Hủy
