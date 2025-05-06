@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import DeviceController from '../../controllers/DeviceController';
+import DeviceScheduling from './DeviceScheduling';
 import './DeviceControl.css';
 
 const DeviceControl = () => {
@@ -7,6 +8,7 @@ const DeviceControl = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isToggling, setIsToggling] = useState({});
+  const [expandedDevice, setExpandedDevice] = useState(null);
   
   const loadDevices = useCallback(async () => {
     // Don't set loading state during refresh to avoid UI flickering
@@ -105,6 +107,10 @@ const DeviceControl = () => {
     }
   };
   
+  const handleToggleSchedule = (deviceId) => {
+    setExpandedDevice(expandedDevice === deviceId ? null : deviceId);
+  };
+  
   const deviceTypeIcons = {
     light: 'fas fa-lightbulb',
     fan: 'fas fa-fan',
@@ -126,44 +132,63 @@ const DeviceControl = () => {
       
       <div className="registered-devices">
         <h2>Registered Devices</h2>
-      <div className="device-grid">
-        {devices.length > 0 ? (
-          devices.map(device => (
-            <div key={device.id} className="device-card">
-              <div className="device-header">
-                <div className="device-icon">
-                  <i className={deviceTypeIcons[device.type] || 'fas fa-plug'}></i>
+        <div className="device-grid">
+          {devices.length > 0 ? (
+            devices.map(device => (
+              <div key={device.id} className={`device-card ${expandedDevice === device.id ? 'expanded' : ''}`}>
+                <div className="device-header">
+                  <div className="device-icon">
+                    <i className={deviceTypeIcons[device.type] || 'fas fa-plug'}></i>
+                  </div>
+                  <div className="device-info">
+                    <h3>{device.name}</h3>
+                    <p>{device.location}</p>
+                  </div>
+                  <div className="device-status">
+                    <span className={device.status}>{device.status === 'active' ? 'ON' : 'OFF'}</span>
+                  </div>
                 </div>
-                <div className="device-info">
-                  <h3>{device.name}</h3>
-                  <p>{device.location}</p>
-                </div>
-                <div className="device-status">
-                  <span className={device.status}>{device.status === 'active' ? 'ON' : 'OFF'}</span>
-                </div>
-              </div>
-              
-              <div className="device-control-panel">
-                <label className="toggle-switch">
-                  <input
-                    type="checkbox"
-                    checked={device.status === 'active'}
-                      onChange={() => handleToggleDevice(device.id, device.type)}
-                      disabled={isToggling[device.id]}
-                  />
-                  <span className="toggle-slider"></span>
-                </label>
-                  {isToggling[device.id] && (
-                    <span className="toggle-indicator">
-                      <i className="fas fa-sync fa-spin"></i>
-                    </span>
+                
+                <div className="device-control-panel">
+                  <div className="toggle-container">
+                    <label className="toggle-switch">
+                      <input
+                        type="checkbox"
+                        checked={device.status === 'active'}
+                        onChange={() => handleToggleDevice(device.id, device.type)}
+                        disabled={isToggling[device.id]}
+                      />
+                      <span className="toggle-slider"></span>
+                    </label>
+                    {isToggling[device.id] && (
+                      <span className="toggle-indicator">
+                        <i className="fas fa-sync fa-spin"></i>
+                      </span>
+                    )}
+                  </div>
+                  
+                  {(device.type === 'fan' || device.type === 'light') && (
+                    <button 
+                      className="schedule-button"
+                      onClick={() => handleToggleSchedule(device.id)}
+                    >
+                      <i className="fas fa-clock"></i>
+                      {expandedDevice === device.id ? 'Ẩn lịch hẹn giờ' : 'Hẹn giờ'}
+                    </button>
                   )}
+                </div>
+                
+                {expandedDevice === device.id && (device.type === 'fan' || device.type === 'light') && (
+                  <DeviceScheduling 
+                    deviceType={device.type} 
+                    deviceName={device.name} 
+                  />
+                )}
               </div>
-            </div>
-          ))
-        ) : (
-          <div className="no-devices">No devices found.</div>
-        )}
+            ))
+          ) : (
+            <div className="no-devices">No devices found.</div>
+          )}
         </div>
       </div>
     </div>

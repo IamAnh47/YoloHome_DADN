@@ -81,6 +81,57 @@ const deviceService = {
       console.error(`Error controlling light (action: ${action}):`, error);
       throw error;
     }
+  },
+  
+  // Get scheduled tasks for a device
+  async getDeviceSchedules(deviceType) {
+    try {
+      const response = await apiService.get(`/devices/${deviceType}/schedules`);
+      return response.data.data || [];
+    } catch (error) {
+      console.error(`Error fetching schedules for ${deviceType}:`, error);
+      // If API doesn't exist yet, return empty array instead of throwing error
+      return [];
+    }
+  },
+  
+  // Schedule a device to turn on or off at a specific time
+  async scheduleDevice(deviceType, action, scheduledTime) {
+    try {
+      const response = await apiService.post(`/devices/${deviceType}/schedule`, {
+        action,
+        scheduledTime
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Error scheduling ${deviceType} ${action} at ${scheduledTime}:`, error);
+      throw error;
+    }
+  },
+  
+  // Schedule a device to operate during a time range
+  async scheduleDeviceRange(deviceType, startTime, endTime) {
+    try {
+      const response = await apiService.post(`/devices/${deviceType}/schedule-range`, {
+        startTime,
+        endTime
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Error scheduling ${deviceType} from ${startTime} to ${endTime}:`, error);
+      throw error;
+    }
+  },
+  
+  // Cancel a scheduled task
+  async cancelSchedule(scheduleId) {
+    try {
+      const response = await apiService.delete(`/devices/schedules/${scheduleId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error canceling schedule ${scheduleId}:`, error);
+      throw error;
+    }
   }
 };
 

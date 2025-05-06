@@ -158,6 +158,66 @@ class DeviceController {
       throw error;
     }
   }
+  
+  /**
+   * Get all schedules for a specific device type
+   * @param {string} deviceType - Type of device (fan, light)
+   * @returns {Promise<Array>} - List of schedules
+   */
+  static async getDeviceSchedules(deviceType) {
+    try {
+      return await deviceService.getDeviceSchedules(deviceType);
+    } catch (error) {
+      console.error(`Error fetching schedules for ${deviceType}:`, error);
+      return [];
+    }
+  }
+  
+  /**
+   * Schedule a device to turn on/off at a specific time
+   * @param {string} deviceType - Type of device (fan, light)
+   * @param {string} action - Action to perform (on, off)
+   * @param {string} scheduledTime - ISO string of scheduled time
+   * @returns {Promise<Object>} - Created schedule
+   */
+  static async scheduleDevice(deviceType, action, scheduledTime) {
+    try {
+      return await deviceService.scheduleDevice(deviceType, action, scheduledTime);
+    } catch (error) {
+      console.error(`Error scheduling ${deviceType}:`, error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Schedule a device to operate during a time range
+   * @param {string} deviceType - Type of device (fan, light)
+   * @param {string} startTime - ISO string of range start time
+   * @param {string} endTime - ISO string of range end time
+   * @returns {Promise<Object>} - Created schedule
+   */
+  static async scheduleDeviceRange(deviceType, startTime, endTime) {
+    try {
+      return await deviceService.scheduleDeviceRange(deviceType, startTime, endTime);
+    } catch (error) {
+      console.error(`Error scheduling ${deviceType} for time range:`, error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Cancel a specific schedule
+   * @param {string} scheduleId - ID of the schedule to cancel
+   * @returns {Promise<Object>} - Result of cancellation
+   */
+  static async cancelSchedule(scheduleId) {
+    try {
+      return await deviceService.cancelSchedule(scheduleId);
+    } catch (error) {
+      console.error(`Error canceling schedule ${scheduleId}:`, error);
+      throw error;
+    }
+  }
 }
 
 export default DeviceController;
