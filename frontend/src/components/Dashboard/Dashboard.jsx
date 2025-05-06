@@ -141,7 +141,7 @@ const Dashboard = () => {
           <h2>Recent Alerts</h2>
           {alerts.length > 0 ? (
             <ul className="alert-list">
-              {alerts.map((alert) => (
+              {alerts.slice(0, 3).map((alert) => (
                 <li key={alert.id} className={`alert ${alert.status}`}>
                   <div className="alert-icon">
                     {alert.type === 'temperature' && <i className="fas fa-thermometer-full"></i>}

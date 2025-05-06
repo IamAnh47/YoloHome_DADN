@@ -175,17 +175,17 @@ class SensorController {
     try {
       if (!this.isDataFresh('alerts') || forceFresh) {
         // Fetch real alerts from API with cache buster
-        const cacheBuster = `?_t=${Date.now()}`;
+        const cacheBuster = `?limit=3&_t=${Date.now()}`;
         const response = await apiService.get('/alerts/recent' + cacheBuster);
       
-      if (response.data && response.data.data && Array.isArray(response.data.data)) {
+        if (response.data && response.data.data && Array.isArray(response.data.data)) {
           const alertsData = response.data.data.map(alert => ({
-          id: alert.alert_id,
-          type: alert.alert_type.toLowerCase(),
-          message: alert.amessage,
-          timestamp: alert.alerted_time,
-          status: alert.status
-        }));
+            id: alert.alert_id,
+            type: alert.alert_type.toLowerCase(),
+            message: alert.amessage,
+            timestamp: alert.alerted_time,
+            status: alert.status
+          }));
           
           // Update cache and timestamp
           this.cache.alerts = alertsData;

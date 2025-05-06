@@ -25,7 +25,7 @@ exports.getAllAlerts = async (req, res, next) => {
 // @access  Private
 exports.getRecentAlerts = async (req, res, next) => {
   try {
-    const limit = req.query.limit ? parseInt(req.query.limit) : 10;
+    const limit = req.query.limit ? parseInt(req.query.limit) : 3;
     
     // Get recent alerts
     const alerts = await AlertModel.getRecentAlerts(limit);
