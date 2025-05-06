@@ -27,18 +27,18 @@ function App() {
   
   useEffect(() => {
     // Check if token exists in localStorage
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     setIsAuthenticated(!!token);
     setIsLoading(false);
   }, []);
   
   const handleLogin = (token) => {
-    localStorage.setItem('token', token);
+    localStorage.setItem('authToken', token);
     setIsAuthenticated(true);
   };
   
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('authToken');
     localStorage.removeItem('userId');
     setIsAuthenticated(false);
   };

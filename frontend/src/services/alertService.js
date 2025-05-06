@@ -87,9 +87,11 @@ class AlertService {
   showAlertNotification(alert) {
     // Xác định loại thông báo dựa vào loại cảnh báo
     let type = 'info';
-    if (alert.type.includes('High')) {
+    if (alert.type.includes('High') || alert.type.includes('Cao') || alert.type.includes('Kích hoạt')) {
       type = 'warning';
-    } else if (alert.type.includes('Low')) {
+    } else if (alert.type.includes('Critical') || alert.type.includes('Nguy hiểm')) { 
+      type = 'error';
+    } else if (alert.type.includes('Low') || alert.type.includes('Thấp')) {
       type = 'info';
     }
     

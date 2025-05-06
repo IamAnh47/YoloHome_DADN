@@ -10,7 +10,7 @@ class AuthController {
       if (response.success) {
         // Store user information and token
         localStorage.setItem('userId', response.user.id);
-        localStorage.setItem('token', response.token);
+        localStorage.setItem('authToken', response.token);
         
         // Create user model instance and store in localStorage
         const user = new UserModel(response.user);
@@ -41,7 +41,7 @@ class AuthController {
       await authService.logout();
       
       // Clear local storage
-      localStorage.removeItem('token');
+      localStorage.removeItem('authToken');
       localStorage.removeItem('userId');
       localStorage.removeItem('userData');
       
@@ -56,7 +56,7 @@ class AuthController {
   }
   
   static isAuthenticated() {
-    return localStorage.getItem('token') !== null;
+    return localStorage.getItem('authToken') !== null;
   }
   
   static getCurrentUserId() {
