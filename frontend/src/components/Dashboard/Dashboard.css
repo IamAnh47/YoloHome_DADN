@@ -263,3 +263,12 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* AI Controls and Predictions */
+.prediction-section {
+  margin-top: 2rem;
+}
+
+.ai-controls-container {
+  margin-bottom: 1.5rem;
+}

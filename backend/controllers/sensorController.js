@@ -1,5 +1,5 @@
 const SensorModel = require('../models/sensorModel');
-const predictionService = require('../services/predictionService');
+const mlPredictionService = require('../services/mlPredictionService');
 const alertService = require('../services/alertService');
 const adafruitService = require('../services/adafruitService');
 
@@ -193,39 +193,19 @@ exports.addSensorData = async (req, res, next) => {
     // Get sensor information
     const sensor = await SensorModel.getSensorById(req.params.id);
     
-    // If this is temperature data, run the prediction
-    if (sensor && sensor.sensor_type === 'temperature') {
-      // Run temperature prediction
-      const prediction = await predictionService.predictTemperature(value);
+    // Update sensor cache in ML prediction service
+    if (sensor) {
+      mlPredictionService.updateSensorCache({
+        sensor_type: sensor.sensor_type,
+        value: parseFloat(value),
+        timestamp: timestamp || new Date().toISOString()
+      });
       
-      // Include prediction in response
-      data.prediction = prediction;
+      // If this is temperature or humidity data, check for alerts
+      if (sensor.sensor_type === 'temperature' || sensor.sensor_type === 'humidity') {
+        await alertService.checkSensorAlert(sensor.sensor_id, sensor.sensor_type, value);
+      }
     }
-    
-    // Check for alert thresholds
-    // First, we need to get all latest readings
-    const temperatureSensor = await SensorModel.getSensorByType('temperature');
-    const humiditySensor = await SensorModel.getSensorByType('humidity');
-    const motionSensor = await SensorModel.getSensorByType('motion');
-    
-    // Get latest data for each sensor
-    const temperatureData = temperatureSensor ? 
-      await SensorModel.getLatestSensorData(temperatureSensor.sensor_id) : null;
-    const humidityData = humiditySensor ? 
-      await SensorModel.getLatestSensorData(humiditySensor.sensor_id) : null;
-    const motionData = motionSensor ? 
-      await SensorModel.getLatestSensorData(motionSensor.sensor_id) : null;
-    
-    // Prepare sensor data for alert checking
-    const sensorData = {
-      temperature: temperatureData ? parseFloat(temperatureData.svalue) : 0.0,
-      humidity: humidityData ? parseFloat(humidityData.svalue) : 0.0,
-      motion: motionData ? motionData.svalue > 0 : false,
-      timestamp: new Date().toISOString()
-    };
-    
-    // Check alert thresholds
-    await alertService.checkThresholds(sensorData);
     
     res.status(201).json({
       success: true,
@@ -404,7 +384,7 @@ exports.createSensorData = async (req, res, next) => {
     if (sensor && sensor.sensor_type === 'temperature') {
       // Run temperature prediction if available
       try {
-        const prediction = await predictionService.predictTemperature(value);
+        const prediction = await mlPredictionService.predictTemperature(value);
         // Include prediction in response
         data.prediction = prediction;
       } catch (predictionError) {
@@ -526,6 +506,45 @@ exports.getFeedDataByDate = async (req, res, next) => {
     });
   } catch (error) {
     console.error(`Error getting feed data for ${req.params.type}:`, error);
+    next(error);
+  }
+};
+
+// @desc    Get temperature and humidity predictions
+// @route   GET /api/sensors/predictions
+// @access  Private
+exports.getPredictions = async (req, res, next) => {
+  try {
+    const predictions = await mlPredictionService.predict();
+    
+    if (!predictions.success) {
+      return res.status(400).json({
+        success: false,
+        message: predictions.message || 'Failed to make predictions'
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      data: predictions.data
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Train the ML prediction models
+// @route   POST /api/sensors/train-models
+// @access  Private
+exports.trainModels = async (req, res, next) => {
+  try {
+    const result = await mlPredictionService.trainModels();
+    
+    res.status(200).json({
+      success: result.success,
+      message: result.message
+    });
+  } catch (error) {
     next(error);
   }
 };

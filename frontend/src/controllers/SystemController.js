@@ -110,6 +110,35 @@ class SystemController {
       throw error;
     }
   }
+
+  /**
+   * Get AI mode status
+   * @returns {Promise<boolean>} AI mode enabled status
+   */
+  static async getAIMode() {
+    try {
+      const response = await apiService.get('/system/ai-mode');
+      return response.data.data.enabled;
+    } catch (error) {
+      console.error('Error fetching AI mode status:', error);
+      return false; // Default to disabled on error
+    }
+  }
+  
+  /**
+   * Update AI mode status
+   * @param {boolean} enabled - Whether AI mode should be enabled
+   * @returns {Promise<boolean>} Success status
+   */
+  static async updateAIMode(enabled) {
+    try {
+      const response = await apiService.put('/system/ai-mode', { enabled });
+      return response.data.success;
+    } catch (error) {
+      console.error('Error updating AI mode:', error);
+      return false;
+    }
+  }
 }
 
 export default SystemController; 

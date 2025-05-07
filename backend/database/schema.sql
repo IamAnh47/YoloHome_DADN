@@ -157,6 +157,18 @@ ALTER TABLE device_logs ADD CONSTRAINT fk_device_logs_device FOREIGN KEY (device
 ALTER TABLE sensor_logs ADD CONSTRAINT fk_sensor_logs FOREIGN KEY (log_id) REFERENCES control_logs(log_id) ON DELETE CASCADE;
 ALTER TABLE sensor_logs ADD CONSTRAINT fk_sensor_logs_sensor FOREIGN KEY (sensor_id) REFERENCES sensor(sensor_id) ON DELETE CASCADE;
 
+-- Table AI Mode : Store AI mode settings
+CREATE TABLE IF NOT EXISTS ai_mode (
+  id SERIAL PRIMARY KEY,
+  status BOOLEAN DEFAULT FALSE,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insert default AI mode setting if not exists
+INSERT INTO ai_mode (status)
+SELECT FALSE
+WHERE NOT EXISTS (SELECT 1 FROM ai_mode LIMIT 1);
+
 -- Insert initial data
 
 -- Create default admin user

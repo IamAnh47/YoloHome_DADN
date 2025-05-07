@@ -176,7 +176,7 @@ const DeviceControl = () => {
                       {expandedDevice === device.id ? 'Ẩn lịch hẹn giờ' : 'Hẹn giờ'}
                     </button>
                   )}
-                </div>
+              </div>
                 
                 {expandedDevice === device.id && (device.type === 'fan' || device.type === 'light') && (
                   <DeviceScheduling 

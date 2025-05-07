@@ -15,13 +15,19 @@ router.get('/readings/:type', sensorController.getLatestSensorByType);
 // Get sensor history
 router.get('/history/:type', sensorController.getSensorHistoryByType);
 
+// Get temperature and humidity predictions
+router.get('/predictions', sensorController.getPredictions);
+
+// Train the ML prediction models
+router.post('/train-models', sensorController.trainModels);
+
+// Create new sensor data
+router.post('/data', sensorController.createSensorData);
+
 // Get all sensors
 router.get('/', sensorController.getAllSensors);
 
 // Get single sensor
 router.get('/:id', sensorController.getSensor);
-
-// Create new sensor data - commented out due to missing controller method
-// router.post('/data', sensorController.createSensorData);
 
 module.exports = router;

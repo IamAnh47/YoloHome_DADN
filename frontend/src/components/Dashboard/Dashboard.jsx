@@ -4,6 +4,8 @@ import SensorController from '../../controllers/SensorController';
 import AdafruitFeedChart from './AdafruitFeedChart';
 import SensorAverageCard from './SensorAverageCard';
 import DeviceScheduleDisplay from './DeviceScheduleDisplay';
+import PredictionWidget from './PredictionWidget';
+import AIModeToggle from './AIModeToggle';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -165,6 +167,15 @@ const Dashboard = () => {
             <a href="/alerts" className="view-all">View All Alerts</a>
           </div>
         </div>
+      </div>
+      
+      {/* ML Prediction Widget */}
+      <div className="prediction-section">
+        <h2>AI Predictions</h2>
+        <div className="ai-controls-container">
+          <AIModeToggle />
+        </div>
+        <PredictionWidget />
       </div>
       
       {/* Device Schedules Section */}
