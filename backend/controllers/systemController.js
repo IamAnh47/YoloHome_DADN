@@ -1,4 +1,5 @@
 const SystemModel = require('../models/systemModel');
+const mlPredictionService = require('../services/mlPredictionService');
 
 // @desc    Get system status
 // @route   GET /api/system/status
@@ -66,6 +67,45 @@ exports.updateAIMode = async (req, res, next) => {
       data: { enabled }
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Test AI mode fan activation
+// @route   POST /api/system/test-ai-fan
+// @access  Private
+exports.testAIModeFan = async (req, res, next) => {
+  try {
+    // Kiểm tra xem AI Mode có được bật không
+    const aiModeEnabled = await SystemModel.getAIMode();
+    
+    if (!aiModeEnabled) {
+      return res.status(400).json({
+        success: false,
+        message: 'AI Mode is currently disabled. Please enable it first to test automatic fan control.'
+      });
+    }
+    
+    // Giả lập nhiệt độ cao (31°C) để kích hoạt quạt
+    const testTemperature = 31.0;
+    console.log(`Testing AI Mode fan activation with simulated temperature: ${testTemperature}°C`);
+    
+    // Gọi hàm kích hoạt quạt từ mlPredictionService
+    const activationResult = await mlPredictionService.activateFanIfNeeded(testTemperature);
+    
+    res.status(200).json({
+      success: true,
+      message: activationResult 
+        ? 'Fan activation test successful! The system has attempted to turn on the fan.' 
+        : 'Fan activation test completed, but the fan was not activated. Check the logs for details.',
+      data: {
+        aiModeStatus: aiModeEnabled,
+        testTemperature: testTemperature,
+        fanActivated: activationResult
+      }
+    });
+  } catch (error) {
+    console.error('Error in AI Mode fan test:', error);
     next(error);
   }
 }; 

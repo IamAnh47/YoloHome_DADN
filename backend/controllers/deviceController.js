@@ -955,6 +955,12 @@ exports.executePendingSchedules = async (req, res, next) => {
 // @access  Internal only
 exports.toggleDeviceAI = async (deviceId, action, reason) => {
   try {
+    // Thêm log chi tiết để debug
+    console.log(`=== AI SYSTEM ACTION ===`);
+    console.log(`Device ID: ${deviceId}`);
+    console.log(`Action: ${action}`);
+    console.log(`Reason: ${reason}`);
+    
     // Validate input
     if (!action || (action !== 'ON' && action !== 'OFF')) {
       throw new Error('Please provide valid action (ON or OFF)');
@@ -966,10 +972,14 @@ exports.toggleDeviceAI = async (deviceId, action, reason) => {
     if (!device) {
       throw new Error(`Device with ID ${deviceId} not found`);
     }
+
+    console.log(`Found device: ${device.name}, current status: ${device.status}`);
     
     // Update device status
     const status = action === 'ON' ? 'active' : 'inactive';
     const updatedDevice = await DeviceModel.updateDevice(deviceId, { status });
+    
+    console.log(`Device status updated to: ${status}`);
     
     // Send MQTT message
     const topic = `yolohome/devices/${device.device_id}/control`;
@@ -982,18 +992,22 @@ exports.toggleDeviceAI = async (deviceId, action, reason) => {
       reason: reason || 'AI triggered action'
     });
     
+    console.log(`Sending MQTT message to topic: ${topic}`);
     mqttService.publishMessage(topic, message);
     
     // Also update Adafruit feed directly
     if (device.type === 'fan' || device.type === 'light') {
       try {
         const value = action === 'ON' ? 1 : 0;
+        console.log(`Updating Adafruit feed for ${device.type} to value: ${value}`);
         await adafruitService.updateFeed(device.type, value);
+        console.log(`Adafruit feed updated successfully`);
       } catch (feedError) {
         console.error(`Error updating Adafruit feed for ${device.type}:`, feedError);
       }
     }
     
+    console.log(`=== AI ACTION COMPLETE ===`);
     return updatedDevice;
   } catch (error) {
     console.error(`Error in toggleDeviceAI: ${error.message}`);

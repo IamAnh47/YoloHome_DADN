@@ -15,4 +15,7 @@ router.get('/ai-mode', systemController.getAIMode);
 // Update AI mode status
 router.put('/ai-mode', systemController.updateAIMode);
 
+// Test AI mode fan activation
+router.post('/test-ai-fan', systemController.testAIModeFan);
+
 module.exports = router; 

@@ -1,5 +1,6 @@
 const { spawn } = require('child_process');
 const path = require('path');
+const os = require('os');
 const logger = require('../utils/logger');
 const SensorModel = require('../models/sensorModel');
 const DeviceModel = require('../models/deviceModel');
@@ -8,7 +9,11 @@ const deviceController = require('../controllers/deviceController');
 
 class MLPredictionService {
   constructor() {
-    this.pythonPath = process.env.PYTHON_PATH || 'python3';
+    // Sử dụng 'python' cho Windows và 'python3' cho Linux/Mac
+    const isWindows = os.platform() === 'win32';
+    this.pythonPath = process.env.PYTHON_PATH || (isWindows ? 'python' : 'python3');
+    logger.info(`Using Python executable: ${this.pythonPath}`);
+    
     this.predictionScriptPath = path.join(__dirname, '../../ml/prediction_service.py');
     this.modelTrainingScriptPath = path.join(__dirname, '../../ml/decision_tree_model.py');
     
@@ -268,42 +273,47 @@ class MLPredictionService {
         return false;
       }
       
-      if (predictedTemperature > threshold) {
-        logger.info(`Predicted temperature (${predictedTemperature.toFixed(2)}°C) exceeds threshold (${threshold}°C). Activating fan if needed.`);
+      // Kiểm tra cả nhiệt độ hiện tại và dự đoán
+      const currentTemp = parseFloat(this.sensorCache.temperature.current);
+      logger.info(`Current temperature: ${currentTemp}°C, Predicted: ${predictedTemperature.toFixed(2)}°C, Threshold: ${threshold}°C`);
+      
+      if (currentTemp > threshold || predictedTemperature > threshold) {
+        logger.info(`Temperature exceeds threshold (${threshold}°C). Activating fan.`);
         
-        // Get fan devices
-        const fans = await DeviceModel.getDevicesByType('fan');
-        
-        if (fans.length === 0) {
-          logger.warn('No fan devices found for automatic control');
-          return false;
-        }
-        
-        // Activate fans that are currently off
-        for (const fan of fans) {
-          if (fan.status === 'inactive') {
-            logger.info(`Activating fan ${fan.device_id} based on ML prediction`);
-            
-            // Use device controller to toggle device
-            await deviceController.toggleDeviceAI(
-              fan.device_id, 
-              'ON', 
-              'Temperature prediction triggered activation'
-            );
-            
-            // Log AI action
-            logger.info(`AI Mode: Automatically activated fan due to high temperature prediction (${predictedTemperature.toFixed(1)}°C)`);
+        try {
+          // Kích hoạt quạt thông qua controller trực tiếp
+          const fanDevices = await DeviceModel.getDevicesByType('fan');
+          
+          if (fanDevices.length === 0) {
+            logger.warn('No fan devices found for automatic control');
+            return false;
           }
+          
+          const fanDevice = fanDevices[0];
+          logger.info(`Activating fan ${fanDevice.device_id} through controller (AI Mode)...`);
+          
+          // Gọi hàm controlFan từ deviceController để đảm bảo cập nhật cả Adafruit
+          console.log('AI Mode: Automatically activating fan due to high temperature');
+          
+          // Sử dụng toggleDeviceAI từ deviceController
+          await deviceController.toggleDeviceAI(
+            fanDevice.device_id, 
+            'ON', 
+            'Temperature exceeded threshold - AI Mode activated fan'
+          );
+          
+          logger.info('Fan activation command sent successfully');
+          return true;
+        } catch (error) {
+          logger.error(`Error during fan activation: ${error.message}`);
         }
-        
-        return true;
       } else {
-        logger.debug(`Current predicted temperature (${predictedTemperature.toFixed(2)}°C) is below threshold (${threshold}°C). No action needed.`);
+        logger.debug(`Temperature (${Math.max(currentTemp, predictedTemperature).toFixed(2)}°C) is below threshold (${threshold}°C). No action needed.`);
       }
       
       return false;
     } catch (error) {
-      logger.error(`Error activating fan: ${error.message}`);
+      logger.error(`Error in activateFanIfNeeded: ${error.message}`);
       return false;
     }
   }
