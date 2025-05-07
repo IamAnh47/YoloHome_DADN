@@ -1,5 +1,26 @@
 const SystemModel = require('../models/systemModel');
 
+// @desc    Get system status
+// @route   GET /api/system/status
+// @access  Private
+exports.getSystemStatus = async (req, res, next) => {
+  try {
+    // Đơn giản trả về trạng thái AI mode
+    const aiModeStatus = await SystemModel.getAIMode();
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        ai_mode: aiModeStatus,
+        version: '1.0.0',
+        status: 'online'
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Get AI mode status
 // @route   GET /api/system/ai-mode
 // @access  Private
