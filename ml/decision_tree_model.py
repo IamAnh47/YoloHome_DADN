@@ -12,25 +12,30 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import datetime
 import logging
 import warnings
+import io
 
 warnings.filterwarnings('ignore')
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler(os.path.join(os.path.dirname(__file__), 'logs', 'model_training.log'))
-    ]
-)
-
-logger = logging.getLogger('decision_tree_model')
-
-# Create logs directory if it doesn't exist
+# Create directories first - before logging setup
 os.makedirs(os.path.join(os.path.dirname(__file__), 'logs'), exist_ok=True)
 os.makedirs(os.path.join(os.path.dirname(__file__), 'models'), exist_ok=True)
 os.makedirs(os.path.join(os.path.dirname(__file__), 'data'), exist_ok=True)
+
+# Configure logging with proper encoding
+handlers = [logging.StreamHandler()]
+
+# Create a file handler with UTF-8 encoding
+log_file = os.path.join(os.path.dirname(__file__), 'logs', 'model_training.log')
+file_handler = logging.FileHandler(log_file, encoding='utf-8')
+handlers.append(file_handler)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=handlers
+)
+
+logger = logging.getLogger('decision_tree_model')
 
 # Database connection parameters - read from environment or use defaults
 DB_USER = os.environ.get('DB_USER', 'postgres')

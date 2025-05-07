@@ -1,3 +1,5 @@
+const SystemModel = require('../models/systemModel');
+
 // @desc    Get AI mode status
 // @route   GET /api/system/ai-mode
 // @access  Private

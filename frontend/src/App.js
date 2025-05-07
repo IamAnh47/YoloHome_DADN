@@ -12,6 +12,7 @@ import DeviceControl from './components/DeviceControl/DeviceControl';
 import Alerts from './components/Alerts/Alerts';
 import AlertConfig from './components/Alerts/AlertConfig';
 import SensorsPage from './components/Sensors/SensorsPage';
+import PredictionsPage from './components/Predictions/PredictionsPage';
 import Header from './components/common/Header';
 import Sidebar from './components/common/Sidebar';
 import Footer from './components/common/Footer';
@@ -122,10 +123,11 @@ function AuthenticatedLayout() {
                       <Route path="/" element={<Navigate to="/dashboard" />} />
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/devices" element={<DeviceControl />} />
-            <Route path="/sensors" element={<SensorsPage />} />
+                      <Route path="/sensors" element={<SensorsPage />} />
                       <Route path="/alerts" element={<Alerts />} />
                       <Route path="/alert-config" element={<AlertConfig />} />
-            <Route path="*" element={<Navigate to="/dashboard" />} />
+                      <Route path="/predictions" element={<PredictionsPage />} />
+                      <Route path="*" element={<Navigate to="/dashboard" />} />
                     </Routes>
                   </main>
                 </div>

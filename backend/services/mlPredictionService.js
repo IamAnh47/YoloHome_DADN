@@ -290,10 +290,15 @@ class MLPredictionService {
               'ON', 
               'Temperature prediction triggered activation'
             );
+            
+            // Log AI action
+            logger.info(`AI Mode: Automatically activated fan due to high temperature prediction (${predictedTemperature.toFixed(1)}°C)`);
           }
         }
         
         return true;
+      } else {
+        logger.debug(`Current predicted temperature (${predictedTemperature.toFixed(2)}°C) is below threshold (${threshold}°C). No action needed.`);
       }
       
       return false;

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Card, CardContent, Typography, Box, CircularProgress, Button, Alert, LinearProgress } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import ThermostatIcon from '@mui/icons-material/Thermostat';
@@ -7,6 +6,7 @@ import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import UpdateIcon from '@mui/icons-material/Update';
 import ScienceIcon from '@mui/icons-material/Science';
 import SystemController from '../../controllers/SystemController';
+import apiService from '../../services/apiService';
 
 const PredictionWidget = () => {
   const [predictions, setPredictions] = useState(null);
@@ -23,7 +23,7 @@ const PredictionWidget = () => {
     setError(null);
     
     try {
-      const response = await axios.get('/api/sensors/predictions');
+      const response = await apiService.get('/sensors/predictions');
       
       if (response.data.success) {
         setPredictions(response.data.data);
@@ -45,7 +45,7 @@ const PredictionWidget = () => {
     setTrainStatus('Training models, this may take a few minutes...');
     
     try {
-      const response = await axios.post('/api/sensors/train-models');
+      const response = await apiService.post('/sensors/train-models');
       
       if (response.data.success) {
         setTrainStatus('Models trained successfully! Fetching predictions...');

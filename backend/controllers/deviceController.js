@@ -950,3 +950,53 @@ exports.executePendingSchedules = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Toggle device by AI system (no HTTP response)
+// @access  Internal only
+exports.toggleDeviceAI = async (deviceId, action, reason) => {
+  try {
+    // Validate input
+    if (!action || (action !== 'ON' && action !== 'OFF')) {
+      throw new Error('Please provide valid action (ON or OFF)');
+    }
+    
+    // Get device
+    const device = await DeviceModel.getDeviceById(deviceId);
+    
+    if (!device) {
+      throw new Error(`Device with ID ${deviceId} not found`);
+    }
+    
+    // Update device status
+    const status = action === 'ON' ? 'active' : 'inactive';
+    const updatedDevice = await DeviceModel.updateDevice(deviceId, { status });
+    
+    // Send MQTT message
+    const topic = `yolohome/devices/${device.device_id}/control`;
+    const message = JSON.stringify({
+      device_id: device.device_id,
+      action,
+      status,
+      timestamp: new Date().toISOString(),
+      source: 'ai_system',
+      reason: reason || 'AI triggered action'
+    });
+    
+    mqttService.publishMessage(topic, message);
+    
+    // Also update Adafruit feed directly
+    if (device.type === 'fan' || device.type === 'light') {
+      try {
+        const value = action === 'ON' ? 1 : 0;
+        await adafruitService.updateFeed(device.type, value);
+      } catch (feedError) {
+        console.error(`Error updating Adafruit feed for ${device.type}:`, feedError);
+      }
+    }
+    
+    return updatedDevice;
+  } catch (error) {
+    console.error(`Error in toggleDeviceAI: ${error.message}`);
+    throw error;
+  }
+};

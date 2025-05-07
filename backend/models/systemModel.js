@@ -1,3 +1,5 @@
+const db = require('../config/db');
+
 // Get AI mode status
 exports.getAIMode = async () => {
   try {
