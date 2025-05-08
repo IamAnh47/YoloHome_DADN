@@ -95,7 +95,15 @@ class MLPredictionService {
       
       process.stderr.on('data', (data) => {
         stderr += data.toString();
-        logger.error(`ML Training Error: ${data.toString().trim()}`);
+        const message = data.toString().trim();
+        
+        // Only log as error if it's an actual error, not an INFO message
+        if (message.includes('[ERROR]') || !message.includes('INFO')) {
+          logger.error(`ML Training Error: ${message}`);
+        } else {
+          // For INFO messages, log as info instead
+          logger.debug(`ML Training Info: ${message}`);
+        }
       });
       
       process.on('close', (code) => {
@@ -181,7 +189,15 @@ class MLPredictionService {
       
       process.stderr.on('data', (data) => {
         stderr += data.toString();
-        logger.error(`ML Prediction Error: ${data.toString().trim()}`);
+        const message = data.toString().trim();
+        
+        // Only log as error if it's an actual error, not an INFO message
+        if (message.includes('[ERROR]') || !message.includes('INFO')) {
+          logger.error(`ML Prediction Error: ${message}`);
+        } else {
+          // For INFO messages, log as info instead
+          logger.debug(`ML Prediction Info: ${message}`);
+        }
       });
       
       process.on('close', async (code) => {
