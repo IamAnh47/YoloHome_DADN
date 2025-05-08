@@ -12,6 +12,11 @@ router.post('/fan/off', deviceController.turnOffFan);
 router.post('/light/on', deviceController.turnOnLight);
 router.post('/light/off', deviceController.turnOffLight);
 
+// AI mode control routes
+router.post('/aimode/enable', deviceController.enableAIMode);
+router.post('/aimode/disable', deviceController.disableAIMode);
+router.get('/aimode/status', deviceController.getAIModeStatus);
+
 // Toggle devices by type
 router.post('/toggle-by-type', deviceController.toggleDevicesByType);
 

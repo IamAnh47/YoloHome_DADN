@@ -22,6 +22,12 @@ class AdafruitService {
   constructor() {
     this.baseUrl = `https://io.adafruit.com/api/v2/${ADA_USERNAME}/feeds`;
     this.enabled = !!ADAFRUIT_IO_KEY;
+    // AI mode flag
+    this.aiModeEnabled = false;
+    // Temperature threshold for the fan in AI mode (in Celsius)
+    this.temperatureThreshold = 18;
+    // Keep track of the last AI control state to avoid unnecessary calls
+    this.lastAiControlState = null;
     
     if (!this.enabled) {
       logger.warn('Adafruit IO service is disabled (missing API key)');
@@ -228,6 +234,113 @@ class AdafruitService {
     } catch (error) {
       logger.error(`Error fetching feed data by date: ${error.message}`);
       return [];
+    }
+  }
+
+  /**
+   * Enable AI mode for fan control
+   * @returns {boolean} - Success status
+   */
+  async enableAIMode() {
+    if (!this.enabled) {
+      logger.info('AI Mode enable skipped (Adafruit DISABLED)');
+      return false;
+    }
+    
+    try {
+      this.aiModeEnabled = true;
+      logger.info('AI Mode enabled for fan control');
+      
+      // When AI mode is enabled, turn on the fan first
+      const result = await this.turnOnFan();
+      
+      return !!result;
+    } catch (error) {
+      logger.error(`Error enabling AI Mode: ${error.message}`);
+      return false;
+    }
+  }
+  
+  /**
+   * Disable AI mode for fan control
+   * @returns {boolean} - Success status
+   */
+  async disableAIMode() {
+    if (!this.enabled) {
+      logger.info('AI Mode disable skipped (Adafruit DISABLED)');
+      return false;
+    }
+    
+    try {
+      this.aiModeEnabled = false;
+      this.lastAiControlState = null;
+      logger.info('AI Mode disabled for fan control');
+      return true;
+    } catch (error) {
+      logger.error(`Error disabling AI Mode: ${error.message}`);
+      return false;
+    }
+  }
+  
+  /**
+   * Check the current AI mode status
+   * @returns {boolean} - Whether AI mode is enabled
+   */
+  isAIModeEnabled() {
+    return this.aiModeEnabled;
+  }
+  
+  /**
+   * Check temperature and manage fan based on AI mode
+   * @param {Function} updateDeviceFunc - Function to update device status in database
+   * @returns {Promise<Object>} - Result including temperature and action taken
+   */
+  async checkTemperatureAndManageFan(updateDeviceFunc) {
+    if (!this.enabled || !this.aiModeEnabled) {
+      return { success: false, aiModeEnabled: this.aiModeEnabled };
+    }
+    
+    try {
+      // Get the latest temperature data
+      const tempData = await this.getFeedData('temperature');
+      
+      if (!tempData) {
+        logger.error('Could not get temperature data for AI control');
+        return { success: false, message: 'Could not get temperature data' };
+      }
+      
+      // Parse the temperature value
+      const temperature = parseFloat(tempData.value);
+      
+      // Check if temperature is below threshold
+      const shouldTurnOff = temperature < this.temperatureThreshold;
+      
+      // Only take action if different from last state
+      if (this.lastAiControlState !== shouldTurnOff) {
+        if (shouldTurnOff) {
+          logger.info(`AI Mode: Temperature (${temperature}°C) below threshold (${this.temperatureThreshold}°C), turning fan OFF`);
+          await this.turnOffFan();
+          await updateDeviceFunc('fan', 'inactive');
+        } else {
+          logger.info(`AI Mode: Temperature (${temperature}°C) above threshold (${this.temperatureThreshold}°C), turning fan ON`);
+          await this.turnOnFan();
+          await updateDeviceFunc('fan', 'active');
+        }
+        
+        // Update last state
+        this.lastAiControlState = shouldTurnOff;
+      }
+      
+      return { 
+        success: true, 
+        temperature: temperature,
+        threshold: this.temperatureThreshold,
+        action: shouldTurnOff ? 'fan_off' : 'fan_on',
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      logger.error(`Error in AI temperature management: ${error.message}`);
+      return { success: false, error: error.message };
     }
   }
 }

@@ -2,12 +2,15 @@ const DeviceScheduleModel = require('../models/deviceScheduleModel');
 const DeviceModel = require('../models/deviceModel');
 const mqttService = require('./mqttService');
 const adafruitService = require('./adafruitService');
+const logger = require('../utils/logger');
 
 class SchedulerService {
   constructor() {
     this.isRunning = false;
     this.interval = null;
+    this.aiCheckInterval = null;
     this.checkInterval = 10000; // Check every 10 seconds by default
+    this.aiModeCheckInterval = 30000; // Check temperature every 30 seconds for AI mode
   }
 
   /**
@@ -29,6 +32,9 @@ class SchedulerService {
     this.isRunning = true;
     this.interval = setInterval(() => this.checkAndExecuteSchedules(), this.checkInterval);
     
+    // Start AI mode temperature check
+    this.startAIModeCheck();
+    
     // Run immediately on start
     this.checkAndExecuteSchedules();
   }
@@ -44,8 +50,51 @@ class SchedulerService {
 
     console.log('Stopping scheduler service');
     clearInterval(this.interval);
+    clearInterval(this.aiCheckInterval);
     this.isRunning = false;
     this.interval = null;
+    this.aiCheckInterval = null;
+  }
+
+  /**
+   * Start AI mode temperature check
+   */
+  startAIModeCheck() {
+    if (this.aiCheckInterval) {
+      clearInterval(this.aiCheckInterval);
+    }
+    
+    console.log(`Starting AI mode temperature check every ${this.aiModeCheckInterval/1000} seconds`);
+    
+    // Run AI temperature check at regular intervals
+    this.aiCheckInterval = setInterval(() => this.checkTemperatureForAIMode(), this.aiModeCheckInterval);
+    
+    // Run immediately on start
+    this.checkTemperatureForAIMode();
+  }
+  
+  /**
+   * Check temperature and control fan if AI mode is enabled
+   */
+  async checkTemperatureForAIMode() {
+    try {
+      // Check if AI mode is enabled
+      if (!adafruitService.isAIModeEnabled()) {
+        return;
+      }
+      
+      logger.info('AI Mode: Checking temperature for fan control');
+      
+      // Check temperature and manage fan
+      await adafruitService.checkTemperatureAndManageFan(async (deviceType, deviceStatus) => {
+        if (deviceType === 'fan') {
+          await DeviceModel.updateDeviceByTypeWithStatus(deviceType, deviceStatus);
+          logger.info(`AI Mode: Fan status updated to ${deviceStatus}`);
+        }
+      });
+    } catch (error) {
+      logger.error(`Error in AI mode temperature check: ${error.message}`);
+    }
   }
 
   /**

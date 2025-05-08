@@ -1014,3 +1014,106 @@ exports.toggleDeviceAI = async (deviceId, action, reason) => {
     throw error;
   }
 };
+
+// @desc    Enable AI mode for fan
+// @route   POST /api/devices/aimode/enable
+// @access  Private
+exports.enableAIMode = async (req, res, next) => {
+  try {
+    // Enable AI mode in adafruit service
+    const result = await adafruitService.enableAIMode();
+    
+    if (!result) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to enable AI mode. Check Adafruit IO connection.'
+      });
+    }
+    
+    // Turn on the fan initially when AI mode is enabled
+    const fanDevice = await DeviceModel.findDeviceByType('fan');
+    if (fanDevice) {
+      await DeviceModel.updateDevice(fanDevice.device_id, { status: 'active' });
+      
+      // Log this control action
+      await DeviceModel.createControlLog({
+        user_id: req.user ? req.user.id : 1,
+        device_id: fanDevice.device_id,
+        action: 'AI Mode Enabled',
+        description: 'AI Mode for fan has been enabled'
+      });
+    }
+    
+    // Check temperature immediately 
+    adafruitService.checkTemperatureAndManageFan(async (deviceType, deviceStatus) => {
+      if (deviceType === 'fan') {
+        await DeviceModel.updateDeviceByTypeWithStatus(deviceType, deviceStatus);
+      }
+    });
+    
+    res.status(200).json({
+      success: true,
+      message: 'AI mode for fan enabled successfully',
+      data: {
+        aiModeEnabled: true,
+        temperatureThreshold: adafruitService.temperatureThreshold,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Disable AI mode for fan
+// @route   POST /api/devices/aimode/disable
+// @access  Private
+exports.disableAIMode = async (req, res, next) => {
+  try {
+    // Disable AI mode in adafruit service
+    const result = await adafruitService.disableAIMode();
+    
+    // Log this control action
+    const fanDevice = await DeviceModel.findDeviceByType('fan');
+    if (fanDevice) {
+      await DeviceModel.createControlLog({
+        user_id: req.user ? req.user.id : 1,
+        device_id: fanDevice.device_id,
+        action: 'AI Mode Disabled',
+        description: 'AI Mode for fan has been disabled'
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: 'AI mode for fan disabled successfully',
+      data: {
+        aiModeEnabled: false,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get AI mode status
+// @route   GET /api/devices/aimode/status
+// @access  Private
+exports.getAIModeStatus = async (req, res, next) => {
+  try {
+    // Get current AI mode status
+    const aiModeEnabled = adafruitService.isAIModeEnabled();
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        aiModeEnabled: aiModeEnabled,
+        temperatureThreshold: adafruitService.temperatureThreshold,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
